@@ -2,18 +2,20 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{07AA9CEA-4EF0-4B47-AFBD-6F74AD9C4653}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{9EAAF58D-1547-4516-90EF-FED7A74720D2}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ToDoLib</RootNamespace>
-    <AssemblyName>ToDoLib</AssemblyName>
+    <RootNamespace>ClientConsole</RootNamespace>
+    <AssemblyName>ClientConsole</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -22,7 +24,8 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -32,6 +35,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -40,21 +44,31 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\Client\Properties\SharedAssemblyInfo.cs">
-      <Link>Properties\SharedAssemblyInfo.cs</Link>
-    </Compile>
-    <Compile Include="Log.cs" />
-    <Compile Include="SortType.cs" />
-    <Compile Include="TaskException.cs" />
-    <Compile Include="TaskList.cs" />
-    <Compile Include="Task.cs" />
+    <Compile Include="ClientConsole.cs" />
+    <Compile Include="Commands\AddCommand.cs" />
+    <Compile Include="Commands\ReplaceCommand.cs" />
+    <Compile Include="Commands\PriorityCommand.cs" />
+    <Compile Include="Commands\DeleteCommand.cs" />
+    <Compile Include="Commands\ListCommand.cs" />
+    <Compile Include="Commands\DoCommand.cs" />
+    <Compile Include="Commands\ITodoCommand.cs" />
+    <Compile Include="Commands\MoveProjectTasksCommand.cs" />
+    <Compile Include="Options.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CommonExtensions\CommonExtensions.csproj">
-      <Project>{5CE19CC1-833A-4950-B86E-CBF59FA00D6F}</Project>
-      <Name>CommonExtensions</Name>
+    <ProjectReference Include="..\ToDoLib\ToDoLib.csproj">
+      <Project>{07AA9CEA-4EF0-4B47-AFBD-6F74AD9C4653}</Project>
+      <Name>ToDoLib</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="todo.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

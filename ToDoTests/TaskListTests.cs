@@ -113,7 +113,7 @@ namespace ToDoTests
             tl.Add(task);
 
             var tasks = new List<Task>(tl.Tasks);
-            tasks.Remove(tasks.Where(x => x.Raw == task.Raw).First());
+            tasks.Remove(tasks.Where(x => x == task).First());
 
             
             tl.Delete(task);
@@ -148,10 +148,9 @@ namespace ToDoTests
             var tl = new TaskList(Data.TestDataPath);
             tl.Add(task);
 
-            var task2 = new Task(task.Raw);
-            task2.Completed = true;
+            task.Completed = true;
 
-            tl.Update(task, task2);
+            tl.Save();
 
             var newTask = tl.Tasks.Last();
             Assert.IsTrue(newTask.Completed);

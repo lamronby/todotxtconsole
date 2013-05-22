@@ -1,0 +1,29 @@
+﻿Differences from Ben Hughes' ToDoLib
+
+* Added SortType class for sorting tasks (needed)?
+
+Task class
+
+* Removed Raw property and associated logic
+	* ToString method uses Task properties, does not use Raw
+	* CompareTo method does property-by-property comparison
+	* SetPriority is much simpler (just sets the Priority property)
+* Added Integer Id property for use in specifying command-line commands
+* CompletedDate property is a nullable DateTime instead of a string
+* Contexts and Properties are stored without their designators (@ and +). They 
+  are added in when needed (ToString and writing to file).
+* Created separate ParseRaw method and moved parse logic out of constructor
+	* Parse logic does not handle newer relative dates
+* Added a Clone method, for facilitating task archive
+
+TaskList class
+
+* Refactored any logic that used Raw property.
+* Added Console output by most Debug outputs to inform user.
+* Added public properties for Priorities, Contexts, and Projects collections
+* ReloadTasks: instead of creating new Task collection from the file, loads
+  the file Tasks and compares with the existing collection. This facilitates
+  using IDs for the tasks - the IDs will remain the same between file loads.
+* Replaced Update method with Save method - Tasks are updated directly in the
+  Task collection, then the collection is saved to disk and reloaded.
+* Sort, FilterList, and Sort methods?
