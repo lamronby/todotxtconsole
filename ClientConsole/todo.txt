@@ -1,2 +1,7 @@
-﻿Set configuration properties via command-line
-Add a context class to pass to commands; include configuration.
+﻿Set configuration properties via command-line @dev
+Add a context class to pass to commands; include configuration @dev
+Does not work when the files (todo.txt, done.txt) do not exist @bug
+Printing contexts when sorting by project does not work @bug
+Implement better listing algorithm - separate class? @dev
+Utility to pull ToDos from source code to a todo.txt file. Include source file and line number. Could use context for source file. @enhancement
+Incorporate Spec# for fun. http://research.microsoft.com/en-us/projects/specsharp  @enhancement

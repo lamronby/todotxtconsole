@@ -53,10 +53,18 @@
     <Compile Include="Commands\DoCommand.cs" />
     <Compile Include="Commands\ITodoCommand.cs" />
     <Compile Include="Commands\MoveProjectTasksCommand.cs" />
+    <Compile Include="CommandContext.cs" />
+    <Compile Include="ConsoleConfig.cs" />
+    <Compile Include="GroupByType.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SortType.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CommonExtensions\CommonExtensions.csproj">
+      <Project>{5CE19CC1-833A-4950-B86E-CBF59FA00D6F}</Project>
+      <Name>CommonExtensions</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ToDoLib\ToDoLib.csproj">
       <Project>{07AA9CEA-4EF0-4B47-AFBD-6F74AD9C4653}</Project>
       <Name>ToDoLib</Name>
@@ -69,6 +77,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="todo.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

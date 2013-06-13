@@ -30,8 +30,8 @@ namespace ToDoLib
 		private const string createdDatePattern = @"(?<date>(\d{4})-(\d{2})-(\d{2}))";
 		private const string dueRelativePattern = @"due:(?<dateRelative>today|tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday)";
 		private const string dueDatePattern = @"due:(?<date>(\d{4})-(\d{2})-(\d{2}))";
-		private const string projectPattern = @"\+(?<proj>[^\s]+)";
-		private const string contextPattern = @"\@(?<context>[^\s]+)";
+        private const string projectPattern = @"(?<proj>\+[^\s]+)";
+        private const string contextPattern = @"(?<context>\@[^\s]+)";
 
 		public int Id { get; internal set; }
 		public List<string> Projects { get; set; }
@@ -119,19 +119,11 @@ namespace ToDoLib
 		{
 			// Format:
 			// <id> <completed_flag> <completed_date> <priority> <body> <projects> <contexts>
-			var sb = new StringBuilder();
-			Projects.ForEach(p => sb.Append("+").Append(p).Append(" "));
-			var projects = sb.ToString().Trim();
-
-			sb.Clear();
-			Contexts.ForEach(c => sb.Append("@").Append(c).Append(" "));
-			var contexts = sb.ToString().Trim();
-
 			var str = "";
 			str = string.Format("{0}{1}{2} {3} {4}",
 				Completed ? "x " + CompletedDate.Value.ToString("yyyy-MM-dd") : "",
 				String.IsNullOrEmpty(Priority) ? "" : Priority + " ",
-				Body, projects, contexts);
+                Body, string.Join(" ", Projects), string.Join(" ", Contexts));
 
 			return str;
 		}

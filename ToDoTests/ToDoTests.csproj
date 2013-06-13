@@ -36,6 +36,7 @@
       <HintPath>..\tools\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -44,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConsoleConfigTests.cs" />
     <Compile Include="Data.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -54,6 +56,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ClientConsole\ClientConsole.csproj">
+      <Project>{9EAAF58D-1547-4516-90EF-FED7A74720D2}</Project>
+      <Name>ClientConsole</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ToDoLib\ToDoLib.csproj">
       <Project>{07AA9CEA-4EF0-4B47-AFBD-6F74AD9C4653}</Project>
       <Name>ToDoLib</Name>

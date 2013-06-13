@@ -22,10 +22,10 @@ namespace ClientConsole.Commands
 			return _keys;
 		}
 
-		public void Execute(string raw)
-		{
-			// Extract IDs from the raw string and find it in the task list.
-			var matches = _inputPattern.Match(raw);
+        public void Execute(string commandArgs, CommandContext context)
+        {
+			// Extract IDs from the commandArgs string and find it in the task list.
+			var matches = _inputPattern.Match(commandArgs);
 			var id = matches.Groups["id"].Value.Trim();
 			var update = matches.Groups["update"].Value.Trim();
 

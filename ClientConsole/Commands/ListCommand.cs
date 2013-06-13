@@ -25,10 +25,10 @@ namespace ClientConsole.Commands
 			return _keys;
 		}
 
-		public void Execute(string raw)
+		public void Execute(string commandArgs, CommandContext context)
 		{
-			// Create regex search string from raw.
-			Regex searchExpr = new Regex(raw, RegexOptions.IgnoreCase);
+			// Create regex search string from commandArgs.
+			Regex searchExpr = new Regex(commandArgs, RegexOptions.IgnoreCase);
 			foreach (var task in _taskList.Tasks)
 			{
 				if (searchExpr.IsMatch(task.Body))

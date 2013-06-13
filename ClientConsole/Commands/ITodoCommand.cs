@@ -8,6 +8,6 @@ namespace ClientConsole.Commands
 	public interface ITodoCommand
 	{
 		IList<string> GetKeys(); 
-		void Execute(string raw);
+		void Execute(string commandArgs, CommandContext context);
 	}
 }

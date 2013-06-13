@@ -21,9 +21,9 @@ namespace ClientConsole.Commands
 			return _keys;
 		}
 
-		public void Execute(string raw)
+		public void Execute(string commandArgs, CommandContext context)
 		{
-			_taskList.Add(new Task(raw));
+			_taskList.Add(new Task(commandArgs));
 		}
 	}
 }

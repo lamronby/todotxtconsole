@@ -6,53 +6,32 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using ClientConsole.Commands;
+using CommonExtensions;
 using Mono.Options;
 using ToDoLib;
 
 namespace ClientConsole
 {
 	public class ClientConsole
-	{
-		public enum SortType
-		{
-			Alphabetical,
-			Completed,
-			Context,
-			DueDate,
-			Priority,
-			Project,
-			None
-		}
+    {
 
-		public enum GroupByType
-		{
-			None,
-			Context,
-			Project,
-			Priority
-		}
+        #region Private
 
-		private const string InputPattern = @"^(?<command>\w+)(\s+(?<raw>.*))?$";
+        private const string InputPattern = @"^(?<command>\w+)(\s+(?<raw>.*))?$";
 
 		private TaskList _taskList;
-		private IDictionary<string, ITodoCommand> _commands = new Dictionary<string, ITodoCommand>(); 
-		private SortType _currentSort = SortType.Alphabetical;
-		private GroupByType _currentGrouping = GroupByType.Project;
+		private IDictionary<string, ITodoCommand> _commands = new Dictionary<string, ITodoCommand>();
 		private readonly Regex _inputPattern = new Regex(InputPattern);
 
-		internal SortType CurrentSort
-		{
-			get { return _currentSort; }
-			set { _currentSort = value; }
-		}
+        #endregion
 
-		internal GroupByType CurrentGrouping
-		{
-			get { return _currentGrouping; }
-			set { _currentGrouping = value; }
-		}
+        #region Properties
 
-		private void LoadTasks(string filePath)
+	    public CommandContext Context { get; set; }
+
+        #endregion
+
+        private void LoadTasks(string filePath)
 		{
 			try
 			{
@@ -65,11 +44,11 @@ namespace ClientConsole
 			}
 		}
 
-		private IEnumerable<Task> Sort(IEnumerable<Task> tasks, SortType sort)
+		private IEnumerable<Task> Sort(IEnumerable<Task> tasks)
 		{
-			Log.Debug("Sorting {0} tasks by {1}", tasks.Count().ToString(), sort.ToString());
+			Log.Debug("Sorting {0} tasks by {1}", tasks.Count().ToString(), ConsoleConfig.Instance.SortType.ToString());
 
-			switch (sort)
+            switch (ConsoleConfig.Instance.SortType)
 			{
 				// nb, we sub-sort by completed for most sorts by prepending either a or z
 				case SortType.Completed:
@@ -106,9 +85,9 @@ namespace ClientConsole
 			}
 		}
 
-		private void PrintTasks(GroupByType groupBy)
+		private void PrintTasks()
 		{
-			if (groupBy == GroupByType.Project)
+			if (this.Context.GroupByType == GroupByType.Project)
 			{
 				Console.WriteLine("===== Projects =====");
 				var projects = _taskList.Projects;
@@ -123,7 +102,7 @@ namespace ClientConsole
 					var sortedTasks = tasks.OrderBy(t => (t.Completed ? "z" : "a") + (string.IsNullOrEmpty(t.Priority) ? "zzz" : t.Priority));
 					foreach (var task in sortedTasks)
 					{
-						PrintTask(task, groupBy);
+						PrintTask(task);
 					}
 				}
 
@@ -135,21 +114,52 @@ namespace ClientConsole
 					var sortedTasks = tasksNoProject.OrderBy(t => (t.Completed ? "z" : "a") + (string.IsNullOrEmpty(t.Priority) ? "zzz" : t.Priority));
 					foreach (var task in sortedTasks)
 					{
-						PrintTask(task, groupBy);
+						PrintTask(task);
 					}
 				}
 			}
+            else if (this.Context.GroupByType == GroupByType.Context)
+			{
+                Console.WriteLine("===== Contexts =====");
+                var contexts = _taskList.Contexts;
+
+                contexts.Sort();
+
+                foreach (var context in contexts)
+                {
+                    Console.WriteLine("\n--- {0} ---", context);
+
+                    var tasks = _taskList.Tasks.Where(t => t.Contexts.Contains(context)).ToList();
+                    var sortedTasks = tasks.OrderBy(t => (t.Completed ? "z" : "a") + (string.IsNullOrEmpty(t.Priority) ? "zzz" : t.Priority));
+                    foreach (var task in sortedTasks)
+                    {
+                        PrintTask(task);
+                    }
+                }
+
+                var tasksNoContext = _taskList.Tasks.Where(t => t.Contexts.Count == 0).ToList();
+                if (tasksNoContext.Count > 0)
+                {
+                    Console.WriteLine("\n--- none ---");
+
+                    var sortedTasks = tasksNoContext.OrderBy(t => (t.Completed ? "z" : "a") + (string.IsNullOrEmpty(t.Priority) ? "zzz" : t.Priority));
+                    foreach (var task in sortedTasks)
+                    {
+                        PrintTask(task);
+                    }
+                }
+            }
 			else
 			{
-				foreach (var task in Sort(_taskList.Tasks, CurrentSort))
+				foreach (var task in Sort(_taskList.Tasks))
 				{
-					PrintTask(task, groupBy);
+					PrintTask(task);
 				}
 			}
 			Console.ResetColor();
 		}
 
-		private void PrintTask(Task task, GroupByType groupBy)
+		private void PrintTask(Task task)
 		{
 			switch (task.Priority)
 			{
@@ -168,7 +178,7 @@ namespace ClientConsole
 			}
 
 			string taskStr;
-			switch (groupBy)
+            switch (this.Context.GroupByType)
 			{
 				case GroupByType.Context:
 					taskStr = string.Format("{0,-4}{1}{2}{3} {4}",
@@ -201,7 +211,7 @@ namespace ClientConsole
 
 		private void RunConsole()
 		{
-			PrintTasks(GroupByType.Project);
+			PrintTasks();
 
 			while (true)
 			{
@@ -220,7 +230,7 @@ namespace ClientConsole
 				else
 				{
 					if (ParseCommand(cmd, raw))
-						PrintTasks(GroupByType.Project);
+						PrintTasks();
 				}
 			}
 		}
@@ -233,7 +243,7 @@ namespace ClientConsole
 			if (_commands.ContainsKey(command.ToLower()))
 			{
 				var cmd = _commands[command.ToLower()];
-				cmd.Execute(raw);
+				cmd.Execute(raw, this.Context);
 				success = true;
 			}
 			else
@@ -264,261 +274,224 @@ namespace ClientConsole
 
 			// TODO Load all plugin commands.
 		}
-		/*
-		  Actions:
-			DONE
-		    add "THING I NEED TO DO +project @context"
-		    a "THING I NEED TO DO +project @context"
-		      Adds THING I NEED TO DO to your todo.txt file on its own line.
-		      Project and context notation optional.
-		      Quotes optional.
 
-		    addm "FIRST THING I NEED TO DO +project1 @context
-		    SECOND THING I NEED TO DO +project2 @context"
-		      Adds FIRST THING I NEED TO DO to your todo.txt on its own line and
-		      Adds SECOND THING I NEED TO DO to you todo.txt on its own line.
-		      Project and context notation optional.
-		      Quotes optional.
+        #region todo reference
 
-		    addto DEST "TEXT TO ADD"
-		      Adds a line of text to any file located in the todo.txt directory.
-		      For example, addto inbox.txt "decide about vacation"
+        /*
+          Actions:
+            SUPPORTED
+            add "THING I NEED TO DO +project @context"
+            a "THING I NEED TO DO +project @context"
+              Adds THING I NEED TO DO to your todo.txt file on its own line.
+              Project and context notation optional.
+              Quotes optional.
 
-		    append ITEM# "TEXT TO APPEND"
-		    app ITEM# "TEXT TO APPEND"
-		      Adds TEXT TO APPEND to the end of the task on line ITEM#.
-		      Quotes optional.
+            NOT SUPPORTED
+            addm "FIRST THING I NEED TO DO +project1 @context
+            SECOND THING I NEED TO DO +project2 @context"
+              Adds FIRST THING I NEED TO DO to your todo.txt on its own line and
+              Adds SECOND THING I NEED TO DO to you todo.txt on its own line.
+              Project and context notation optional.
+              Quotes optional.
 
-		    UNNEEDED
-		    archive
-		      Moves all done tasks from todo.txt to done.txt and removes blank lines.
+            NOT SUPPORTED
+            addto DEST "TEXT TO ADD"
+              Adds a line of text to any file located in the todo.txt directory.
+              For example, addto inbox.txt "decide about vacation"
 
-		    UNNEEDED
-		    command [ACTIONS]
-		      Runs the remaining arguments using only todo.sh builtins.
-		      Will not call any .todo.actions.d scripts.
+            NOT SUPPORTED
+            append ITEM# "TEXT TO APPEND"
+            app ITEM# "TEXT TO APPEND"
+              Adds TEXT TO APPEND to the end of the task on line ITEM#.
+              Quotes optional.
 
-			DONE
-		    del ITEM# [TERM]
-		    rm ITEM# [TERM]
-		      Deletes the task on line ITEM# in todo.txt.
-		      If TERM specified, deletes only TERM from the task.
+            UNNEEDED
+            archive
+              Moves all done tasks from todo.txt to done.txt and removes blank lines.
 
-		    depri ITEM#[, ITEM#, ITEM#, ...]
-		    dp ITEM#[, ITEM#, ITEM#, ...]
-		      Deprioritizes (removes the priority) from the task(s)
-		      on line ITEM# in todo.txt.
+            UNNEEDED
+            command [ACTIONS]
+              Runs the remaining arguments using only todo.sh builtins.
+              Will not call any .todo.actions.d scripts.
 
-			DONE
-		    do ITEM#[, ITEM#, ITEM#, ...]
-		      Marks task(s) on line ITEM# as done in todo.txt.
+            DONE
+            del ITEM# [TERM]
+            rm ITEM# [TERM]
+              Deletes the task on line ITEM# in todo.txt.
+              If TERM specified, deletes only TERM from the task.
 
-		    help
-		      Display this help message.
+            NOT SUPPORTED
+            depri ITEM#[, ITEM#, ITEM#, ...]
+            dp ITEM#[, ITEM#, ITEM#, ...]
+              Deprioritizes (removes the priority) from the task(s)
+              on line ITEM# in todo.txt.
 
-			DONE
-		    list [TERM...]
-		    ls [TERM...]
-		      Displays all tasks that contain TERM(s) sorted by priority with line
-		      numbers.  If no TERM specified, lists entire todo.txt.
+            DONE
+            do ITEM#[, ITEM#, ITEM#, ...]
+              Marks task(s) on line ITEM# as done in todo.txt.
 
-		    listall [TERM...]
-		    lsa [TERM...]
-		      Displays all the lines in todo.txt AND done.txt that contain TERM(s)
-		      sorted by priority with line  numbers.  If no TERM specified, lists
-		      entire todo.txt AND done.txt concatenated and sorted.
+            help
+              Display this help message.
 
-		    listcon
-		    lsc
-		      Lists all the task contexts that start with the @ sign in todo.txt.
+            DONE
+            list [TERM...]
+            ls [TERM...]
+              Displays all tasks that contain TERM(s) sorted by priority with line
+              numbers.  If no TERM specified, lists entire todo.txt.
 
-		    UNNEEDED?
-		    listfile SRC [TERM...]
-		    lf SRC [TERM...]
-		      Displays all the lines in SRC file located in the todo.txt directory,
-		      sorted by priority with line  numbers.  If TERM specified, lists
-		      all lines that contain TERM in SRC file.
+            NOT SUPPORTED
+            listall [TERM...]
+            lsa [TERM...]
+              Displays all the lines in todo.txt AND done.txt that contain TERM(s)
+              sorted by priority with line  numbers.  If no TERM specified, lists
+              entire todo.txt AND done.txt concatenated and sorted.
 
-		    listpri [PRIORITY] [TERM...]
-		    lsp [PRIORITY] [TERM...]
-		      Displays all tasks prioritized PRIORITY.
-		      If no PRIORITY specified, lists all prioritized tasks.
-		      If TERM specified, lists only prioritized tasks that contain TERM.
+            NOT SUPPORTED
+            listcon
+            lsc
+              Lists all the task contexts that start with the @ sign in todo.txt.
 
-		    listproj
-		    lsprj
-		      Lists all the projects that start with the + sign in todo.txt.
+            UNNEEDED?
+            listfile SRC [TERM...]
+            lf SRC [TERM...]
+              Displays all the lines in SRC file located in the todo.txt directory,
+              sorted by priority with line  numbers.  If TERM specified, lists
+              all lines that contain TERM in SRC file.
 
-		    move ITEM# DEST [SRC]
-		    mv ITEM# DEST [SRC]
-		      Moves a line from source text file (SRC) to destination text file (DEST).
-		      Both source and destination file must be located in the directory defined
-		      in the configuration directory.  When SRC is not defined
-		      it's by default todo.txt.
+            NOT SUPPORTED
+            listpri [PRIORITY] [TERM...]
+            lsp [PRIORITY] [TERM...]
+              Displays all tasks prioritized PRIORITY.
+              If no PRIORITY specified, lists all prioritized tasks.
+              If TERM specified, lists only prioritized tasks that contain TERM.
 
-		    prepend ITEM# "TEXT TO PREPEND"
-		    prep ITEM# "TEXT TO PREPEND"
-		      Adds TEXT TO PREPEND to the beginning of the task on line ITEM#.
-		      Quotes optional.
+            NOT SUPPORTED
+            listproj
+            lsprj
+              Lists all the projects that start with the + sign in todo.txt.
 
-			DONE
-		    pri ITEM# PRIORITY
-		    p ITEM# PRIORITY
-		      Adds PRIORITY to task on line ITEM#.  If the task is already
-		      prioritized, replaces current priority with new PRIORITY.
-		      PRIORITY must be an uppercase letter between A and Z.
+            NOT SUPPORTED
+            move ITEM# DEST [SRC]
+            mv ITEM# DEST [SRC]
+              Moves a line from source text file (SRC) to destination text file (DEST).
+              Both source and destination file must be located in the directory defined
+              in the configuration directory.  When SRC is not defined
+              it's by default todo.txt.
 
-		    replace ITEM# "UPDATED TODO"
-		      Replaces task on line ITEM# with UPDATED TODO.
+            NOT SUPPORTED
+            prepend ITEM# "TEXT TO PREPEND"
+            prep ITEM# "TEXT TO PREPEND"
+              Adds TEXT TO PREPEND to the beginning of the task on line ITEM#.
+              Quotes optional.
 
-		    report
-		      Adds the number of open tasks and done tasks to report.txt.
+            DONE
+            pri ITEM# PRIORITY
+            p ITEM# PRIORITY
+              Adds PRIORITY to task on line ITEM#.  If the task is already
+              prioritized, replaces current priority with new PRIORITY.
+              PRIORITY must be an uppercase letter between A and Z.
 
-		  Options:
-		    -@
-		        Hide context names in list output. Use twice to show context
-		        names (default).
-		    -+
-		        Hide project names in list output. Use twice to show project
-		        names (default).
-		    -c
-		        Color mode
-		    -d CONFIG_FILE
-		        Use a configuration file other than the default ~/.todo/config
-		    -f
-		        Forces actions without confirmation or interactive input
-		    -h
-		        Display a short help message
-		    -p
-		        Plain mode turns off colors
-		    -P
-		        Hide priority labels in list output. Use twice to show
-		        priority labels (default).
-		    -a
-		        Don't auto-archive tasks automatically on completion
-		    -A
-		        Auto-archive tasks automatically on completion
-		    -n
-		        Don't preserve line numbers; automatically remove blank lines
-		        on task deletion
-		    -N
-		        Preserve line numbers
-		    -t
-		        Prepend the current date to a task automatically
-		        when it's added.
-		    -T
-		        Do not prepend the current date to a task automatically
-		        when it's added.
-		    -v
-		        Verbose mode turns on confirmation messages
-		    -vv
-		        Extra verbose mode prints some debugging information
-		    -V
-		        Displays version, license and credits
-		    -x
-		        Disables TODOTXT_FINAL_FILTER
+            DONE
+            replace ITEM# "UPDATED TODO"
+              Replaces task on line ITEM# with UPDATED TODO.
+
+            report
+              Adds the number of open tasks and done tasks to report.txt.
+
+          Options:
+            -@
+                Hide context names in list output. Use twice to show context
+                names (default).
+            -+
+                Hide project names in list output. Use twice to show project
+                names (default).
+            -c
+                Color mode
+            -d CONFIG_FILE
+                Use a configuration file other than the default ~/.todo/config
+            -f
+                Forces actions without confirmation or interactive input
+            -h
+                Display a short help message
+            -p
+                Plain mode turns off colors
+            -P
+                Hide priority labels in list output. Use twice to show
+                priority labels (default).
+            -a
+                Don't auto-archive tasks automatically on completion
+            -A
+                Auto-archive tasks automatically on completion
+            -n
+                Don't preserve line numbers; automatically remove blank lines
+                on task deletion
+            -N
+                Preserve line numbers
+            -t
+                Prepend the current date to a task automatically
+                when it's added.
+            -T
+                Do not prepend the current date to a task automatically
+                when it's added.
+            -v
+                Verbose mode turns on confirmation messages
+            -vv
+                Extra verbose mode prints some debugging information
+            -V
+                Displays version, license and credits
+            -x
+                Disables TODOTXT_FINAL_FILTER
 
 
-		  Environment variables:
-		    TODOTXT_AUTO_ARCHIVE            is same as option -a (0)/-A (1)
-		    TODOTXT_CFG_FILE=CONFIG_FILE    is same as option -d CONFIG_FILE
-		    TODOTXT_FORCE=1                 is same as option -f
-		    TODOTXT_PRESERVE_LINE_NUMBERS   is same as option -n (0)/-N (1)
-		    TODOTXT_PLAIN                   is same as option -p (1)/-c (0)
-		    TODOTXT_DATE_ON_ADD             is same as option -t (1)/-T (0)
-		    TODOTXT_VERBOSE=1               is same as option -v
-		    TODOTXT_DEFAULT_ACTION=""       run this when called with no arguments
-		    TODOTXT_SORT_COMMAND="sort ..." customize list output
-		    TODOTXT_FINAL_FILTER="sed ..."  customize list after color, P@+ hiding
-		*/
+          Environment variables:
+            TODOTXT_AUTO_ARCHIVE            is same as option -a (0)/-A (1)
+            TODOTXT_CFG_FILE=CONFIG_FILE    is same as option -d CONFIG_FILE
+            TODOTXT_FORCE=1                 is same as option -f
+            TODOTXT_PRESERVE_LINE_NUMBERS   is same as option -n (0)/-N (1)
+            TODOTXT_PLAIN                   is same as option -p (1)/-c (0)
+            TODOTXT_DATE_ON_ADD             is same as option -t (1)/-T (0)
+            TODOTXT_VERBOSE=1               is same as option -v
+            TODOTXT_DEFAULT_ACTION=""       run this when called with no arguments
+            TODOTXT_SORT_COMMAND="sort ..." customize list output
+            TODOTXT_FINAL_FILTER="sed ..."  customize list after color, P@+ hiding
+        */
 
-		static void ShowHelp(OptionSet p)
+        #endregion
+
+        static void ShowHelp(OptionSet p)
 		{
-			Console.WriteLine("Usage: ClientConsole [-fhpantvV] [-d todo_config] action [task_number]");
+			Console.WriteLine("Usage: ClientConsole [-hfasg]");
 			Console.WriteLine();
 			Console.WriteLine("Options:");
 			p.WriteOptionDescriptions(Console.Out);
 		}
 
-
-		#region Enums
-
-		/// <summary>
-		/// Parse a string to a specific enum. Ignore case, and use the
-		/// first value of the enum if the string does not parse.
-		/// </summary>
-		/// <param name="value">The enum string value to parse.</param>
-		/// <returns>The enum value for the string, or the default
-		/// value if the value cannot be parsed.</returns>
-		static T ParseEnum<T>(string value) where T : struct, IConvertible
-		{
-			if (!typeof(T).IsEnum) throw new ArgumentException("T must be an enumerated type");
-			T defValue = (T)((System.Collections.IList)Enum.GetValues(typeof(T)))[0];
-
-			if (string.IsNullOrEmpty(value)) return defValue;
-
-			try
-			{
-				return (T)Enum.Parse(typeof(T), value, true);
-			}
-			catch (ArgumentException)
-			{
-				return defValue;
-			}
-		}
-
-		/// <summary>
-		/// Parse a string to a specific enum. Ignore case, and use the default
-		/// value if the string does not parse.
-		/// </summary>
-		/// <param name="value">The enum string value to parse.</param>
-		/// <param name="defaultValue">A default enum to use if the
-		/// value cannot be parsed.</param>
-		/// <returns>The enum value for the string, or the default
-		/// value if the value cannot be parsed.</returns>
-		static T ParseEnum<T>(string value, T defaultValue) where T : struct, IConvertible
-		{
-			if (!typeof(T).IsEnum) throw new ArgumentException("T must be an enumerated type");
-			if (string.IsNullOrEmpty(value)) return defaultValue;
-
-			try
-			{
-				return (T)Enum.Parse(typeof(T), value, true);
-			}
-			catch (ArgumentException)
-			{
-				return defaultValue;
-			}
-		}
-
-		#endregion
-
-		static void Main(string[] args)
+        /*
+          Options:
+            f|TodoFile
+                Specify the todo file.
+            a|ArchiveFile
+                Specify the archive file.
+            s|SortBy
+                Specify a sort. Default is ?, valid values are none, alphabetical,
+			    completed, context, duedate, priority, project.
+            g|GroupBy
+                Specify a grouping. Default is none, valid values are none, context,
+                project, or priority.
+        */
+        static void Main(string[] args)
 		{
 			var cc = new ClientConsole();
-			// TODO Not sure what this is.
-			//add view on change file
-			//_changefile = new ObserverChangeFile();
-			//_changefile.OnFileTaskListChange += () => Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { this.Refresh(); }));
 
-			Log.LogLevel = (ConfigurationManager.AppSettings["DebugLoggingOn"] == "true") ? LogLevel.Debug : LogLevel.Error;
-
-			var filePath = ConfigurationManager.AppSettings["FilePath"];
-			if (!string.IsNullOrEmpty(filePath))
-				cc.LoadTasks(filePath);
-
-			if (!string.IsNullOrEmpty(ConfigurationManager.AppSettings["CurrentGrouping"]))
-				cc.CurrentGrouping = ParseEnum<GroupByType>(ConfigurationManager.AppSettings["CurrentGrouping"], GroupByType.Project);
-
-			if (!string.IsNullOrEmpty(ConfigurationManager.AppSettings["CurrentSort"]))
-				cc.CurrentSort = ParseEnum<SortType>(ConfigurationManager.AppSettings["CurrentSort"], SortType.None);
-
-			bool showHelp = false;
-			//:fhpcnNaAtTvVx+@Pd:
+			var showHelp = false;
 			var p = new OptionSet() {
-				{ "pv|projectview", "View tasks organized by project", v => cc.CurrentGrouping = GroupByType.Project },
-				{ "h|help",  "Display help", 
-				  v => showHelp = v != null },
+				{ "f|TodoFile=", "The todo file", f => ConsoleConfig.Instance.FilePath = f},
+				{ "a|ArchiveFile=", "The archive file", a => ConsoleConfig.Instance.ArchiveFilePath = a},
+				{ "s|SortBy=", "Specify a sort.", s => ConsoleConfig.Instance.SortType = 
+                    DotNetExtensions.ParseEnum<SortType>(s, SortType.None)},
+				{ "g|GroupBy=", "Specify a grouping.", g => ConsoleConfig.Instance.GroupByType = 
+                    DotNetExtensions.ParseEnum<GroupByType>(g, GroupByType.Project)},
+				{ "h|help",  "Display help", v => showHelp = v != null },
 				};
 
 			List<string> extra;
@@ -545,7 +518,19 @@ namespace ClientConsole
 				Console.WriteLine(e);
 			}
 
-			cc.LoadCommands();
+            cc.Context = new CommandContext()
+                {
+                    FilePath = ConsoleConfig.Instance.FilePath,
+                    ArchiveFilePath = ConsoleConfig.Instance.ArchiveFilePath,
+                    DebugLevel = 1,
+                    GroupByType = ConsoleConfig.Instance.GroupByType,
+                    SortType = ConsoleConfig.Instance.SortType
+                };
+
+            if (!string.IsNullOrEmpty(ConsoleConfig.Instance.FilePath))
+                cc.LoadTasks(ConsoleConfig.Instance.FilePath);
+
+            cc.LoadCommands();
 			cc.RunConsole();
 		}
 	}
