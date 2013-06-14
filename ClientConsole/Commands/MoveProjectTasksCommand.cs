@@ -15,7 +15,7 @@ namespace ClientConsole.Commands
 	{
 		private TaskList _taskList;
 		private IList<string> _keys = new List<string> {"mvproj"};
-		private readonly Regex _inputPattern = new Regex(@"^(?<id>(all|\d+)\s+)?(?<proj1>\w+)\s+(?<proj2>\w+)");
+        private readonly Regex _inputPattern = new Regex(@"^(?<id>(all|\d+)\s+)?(?<proj1>\+?\w+)\s+(?<proj2>\+?\w+)");
 
 		public MoveProjectTasksCommand(TaskList taskList)
 		{
@@ -38,6 +38,13 @@ namespace ClientConsole.Commands
 			{
 				id = matches.Groups["id"].Captures[0].Value.Trim();
 			}
+
+            // Append a '+' if not already there.
+            if (proj1[0] != '+')
+                proj1 = "+" + proj1;
+
+            if (proj2[0] != '+')
+                proj2 = "+" + proj2;
 
 			if (id == null)
 			{
