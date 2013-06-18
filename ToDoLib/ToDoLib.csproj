@@ -46,6 +46,7 @@
     <Compile Include="Log.cs" />
     <Compile Include="SortType.cs" />
     <Compile Include="TaskException.cs" />
+    <Compile Include="TaskFilter.cs" />
     <Compile Include="TaskList.cs" />
     <Compile Include="Task.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

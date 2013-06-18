@@ -49,6 +49,7 @@
     </Compile>
     <Compile Include="ClientConsole.cs" />
     <Compile Include="Commands\AddCommand.cs" />
+    <Compile Include="Commands\FilterCommand.cs" />
     <Compile Include="Commands\ReplaceCommand.cs" />
     <Compile Include="Commands\PriorityCommand.cs" />
     <Compile Include="Commands\DeleteCommand.cs" />

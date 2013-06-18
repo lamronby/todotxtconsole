@@ -38,6 +38,8 @@ namespace ClientConsole
 
             ArchiveFilePath = ConfigurationManager.AppSettings["ArchiveFilePath"];
 
+            FilterText = ConfigurationManager.AppSettings["FilterText"];
+
             Log.LogLevel = (ConfigurationManager.AppSettings["DebugLoggingOn"] == "true") ? 
                 LogLevel.Debug : 
                 LogLevel.Error;
@@ -53,6 +55,8 @@ namespace ClientConsole
         public GroupByType GroupByType { get; set; }
 
         public String ArchiveFilePath { get; set; }
+
+        public String FilterText { get; set; }
 
         #endregion
 

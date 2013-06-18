@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using ToDoLib;
 
 namespace ClientConsole
 {
@@ -15,8 +13,9 @@ namespace ClientConsole
 
         public String ArchiveFilePath { get; set; }
 
+        public TaskFilter Filter { get; set; }
+
         // Currently unused.
         public int DebugLevel { get; set; }
-
     }
 }

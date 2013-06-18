@@ -44,175 +44,9 @@ namespace ClientConsole
 			}
 		}
 
-		private IEnumerable<Task> Sort(IEnumerable<Task> tasks)
-		{
-			Log.Debug("Sorting {0} tasks by {1}", tasks.Count().ToString(), ConsoleConfig.Instance.SortType.ToString());
-
-            switch (ConsoleConfig.Instance.SortType)
-			{
-				// nb, we sub-sort by completed for most sorts by prepending either a or z
-				case SortType.Completed:
-					return tasks.OrderBy(t => t.Completed);
-				case SortType.Context:
-					return tasks.OrderBy(t =>
-					{
-						var s = t.Completed ? "z" : "a";
-						if (t.Contexts != null && t.Contexts.Count > 0)
-							s += t.Contexts.Min().Substring(1);
-						else
-							s += "zzz";
-						return s;
-					});
-				case SortType.Alphabetical:
-					return tasks.OrderBy(t => (t.Completed ? "z" : "a") + t.Body);
-				case SortType.DueDate:
-					return tasks.OrderBy(t => (t.Completed ? "z" : "a") + (string.IsNullOrEmpty(t.DueDate) ? "zzz" : t.DueDate));
-				case SortType.Priority:
-					return tasks.OrderBy(t => (t.Completed ? "z" : "a") + (string.IsNullOrEmpty(t.Priority) ? "zzz" : t.Priority));
-				case SortType.Project:
-					return tasks.OrderBy(t =>
-					{
-						var s = t.Completed ? "z" : "a";
-						if (t.Projects != null && t.Projects.Count > 0)
-							s += t.Projects.Min().Substring(1);
-						else
-							s += "zzz";
-						return s;
-					});
-				case SortType.None:
-				default:
-					return tasks;
-			}
-		}
-
-		private void PrintTasks()
-		{
-			if (this.Context.GroupByType == GroupByType.Project)
-			{
-				Console.WriteLine("===== Projects =====");
-				var projects = _taskList.Projects;
-
-				projects.Sort();
-
-				foreach (var project in projects)
-				{
-					Console.WriteLine("\n--- {0} ---", project);
-
-					var tasks = _taskList.Tasks.Where(t => t.Projects.Contains(project)).ToList();
-					var sortedTasks = tasks.OrderBy(t => (t.Completed ? "z" : "a") + (string.IsNullOrEmpty(t.Priority) ? "zzz" : t.Priority));
-					foreach (var task in sortedTasks)
-					{
-						PrintTask(task);
-					}
-				}
-
-				var tasksNoProject = _taskList.Tasks.Where(t => t.Projects.Count == 0).ToList();
-				if (tasksNoProject.Count > 0)
-				{
-					Console.WriteLine("\n--- none ---");
-
-					var sortedTasks = tasksNoProject.OrderBy(t => (t.Completed ? "z" : "a") + (string.IsNullOrEmpty(t.Priority) ? "zzz" : t.Priority));
-					foreach (var task in sortedTasks)
-					{
-						PrintTask(task);
-					}
-				}
-			}
-            else if (this.Context.GroupByType == GroupByType.Context)
-			{
-                Console.WriteLine("===== Contexts =====");
-                var contexts = _taskList.Contexts;
-
-                contexts.Sort();
-
-                foreach (var context in contexts)
-                {
-                    Console.WriteLine("\n--- {0} ---", context);
-
-                    var tasks = _taskList.Tasks.Where(t => t.Contexts.Contains(context)).ToList();
-                    var sortedTasks = tasks.OrderBy(t => (t.Completed ? "z" : "a") + (string.IsNullOrEmpty(t.Priority) ? "zzz" : t.Priority));
-                    foreach (var task in sortedTasks)
-                    {
-                        PrintTask(task);
-                    }
-                }
-
-                var tasksNoContext = _taskList.Tasks.Where(t => t.Contexts.Count == 0).ToList();
-                if (tasksNoContext.Count > 0)
-                {
-                    Console.WriteLine("\n--- none ---");
-
-                    var sortedTasks = tasksNoContext.OrderBy(t => (t.Completed ? "z" : "a") + (string.IsNullOrEmpty(t.Priority) ? "zzz" : t.Priority));
-                    foreach (var task in sortedTasks)
-                    {
-                        PrintTask(task);
-                    }
-                }
-            }
-			else
-			{
-				foreach (var task in Sort(_taskList.Tasks))
-				{
-					PrintTask(task);
-				}
-			}
-			Console.ResetColor();
-		}
-
-		private void PrintTask(Task task)
-		{
-			switch (task.Priority)
-			{
-				case "(A)":
-					Console.ForegroundColor = ConsoleColor.Yellow;
-					break;
-				case "(B)":
-					Console.ForegroundColor = ConsoleColor.Green;
-					break;
-				case "(C)":
-					Console.ForegroundColor = ConsoleColor.Cyan;
-					break;
-				case "(D)":
-					Console.ForegroundColor = ConsoleColor.White;
-					break;
-			}
-
-			string taskStr;
-            switch (this.Context.GroupByType)
-			{
-				case GroupByType.Context:
-					taskStr = string.Format("{0,-4}{1}{2}{3} {4}",
-						task.Id,
-						task.Completed ? "x " + task.CompletedDate + " " : "",
-						task.Priority == null ? "" : task.Priority + " ",
-						task.Body, string.Join(" ", task.Projects));
-					break;
-				case GroupByType.Priority:
-					taskStr = string.Format("{0,-4}{1}{2} {3} {4}",
-						task.Id,
-						task.Completed ? "x " + task.CompletedDate + " " : "",
-						task.Body, string.Join(" ", task.Projects), string.Join(" ", task.Contexts));
-					break;
-				case GroupByType.Project:
-					taskStr = string.Format("{0,-4}{1}{2} {3} {4}",
-						task.Id,
-						task.Completed ? "x " + task.CompletedDate + " " : "",
-						task.Priority == null ? "" : task.Priority + " ",
-						task.Body, string.Join(" ", task.Contexts));
-					break;
-				case GroupByType.None:
-				default:
-					taskStr = task.ToString();		// Print as-is.
-					break;
-			}
-			Console.WriteLine(taskStr);
-			Console.ResetColor();
-		}
 
 		private void RunConsole()
 		{
-			PrintTasks();
-
 			while (true)
 			{
 				Console.Write("todo=> ");
@@ -225,13 +59,10 @@ namespace ClientConsole
 				var cmd = matches.Groups["command"].Value.Trim();
 				var raw = matches.Groups["raw"].Value.Trim();
 
-				if (String.IsNullOrEmpty(cmd))
-					Console.WriteLine("Show help");
-				else
-				{
-					if (ParseCommand(cmd, raw))
-						PrintTasks();
-				}
+			    if (String.IsNullOrEmpty(cmd))
+			        Console.WriteLine("Show help");
+			    else
+			        ParseCommand(cmd, raw);
 			}
 		}
 
@@ -279,7 +110,7 @@ namespace ClientConsole
 
         /*
           Actions:
-            SUPPORTED
+            DONE
             add "THING I NEED TO DO +project @context"
             a "THING I NEED TO DO +project @context"
               Adds THING I NEED TO DO to your todo.txt file on its own line.
@@ -397,6 +228,11 @@ namespace ClientConsole
 
             report
               Adds the number of open tasks and done tasks to report.txt.
+
+            NEW
+            filter [TERM...] 
+              Filter 'ls' listings. Filter with no arguments clears any 
+              existing filters.
 
           Options:
             -@
@@ -524,7 +360,8 @@ namespace ClientConsole
                     ArchiveFilePath = ConsoleConfig.Instance.ArchiveFilePath,
                     DebugLevel = 1,
                     GroupByType = ConsoleConfig.Instance.GroupByType,
-                    SortType = ConsoleConfig.Instance.SortType
+                    SortType = ConsoleConfig.Instance.SortType,
+                    Filter = String.IsNullOrEmpty(ConsoleConfig.Instance.FilterText) ? null : new TaskFilter(ConsoleConfig.Instance.FilterText)
                 };
 
             if (!string.IsNullOrEmpty(ConsoleConfig.Instance.FilePath))
