@@ -52,7 +52,7 @@ namespace ClientConsole.Commands
 
             if (context.GroupByType == GroupByType.Project)
             {
-                Console.WriteLine("===== Projects =====");
+                Console.WriteLine("=============== Projects ===============");
 
                 var projects = matchList
                     .SelectMany(t => t.Projects)
