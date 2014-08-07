@@ -24,8 +24,18 @@ namespace ClientConsole.Commands
 
         public void Execute(string commandArgs, CommandContext context)
         {
-            context.Filter = new TaskFilter(commandArgs);
-            Console.WriteLine("Added filter: {0}", context.Filter);
+            if (String.IsNullOrEmpty(commandArgs))
+            {
+                if (context.Filter != null)
+                    Console.WriteLine("Removed filter: {0}", context.Filter);
+
+                context.Filter = null;
+            }
+            else
+            {
+                context.Filter = new TaskFilter(commandArgs);
+                Console.WriteLine("Added filter: {0}", context.Filter);
+            }
         }
     }
 }
