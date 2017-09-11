@@ -1,40 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using ToDoLib;
 
-namespace ClientConsole.Commands
+namespace ClientConsole.Views
 {
-	// TODO Add filter support.
-	// TODO Add sort support.
-	public class ListCommand : ITodoCommand
-	{
-		private IList<string> _keys = new List<string> {"list", "ls"};
-
-		public ListCommand()
-		{
-		}
-
-		public IList<string> GetKeys()
-		{
-			return _keys;
-		}
-
-		public void Execute(string commandArgs, CommandContext context)
-		{
-			// Create regex search string from commandArgs.
-			var searchExpr = new Regex(commandArgs, RegexOptions.IgnoreCase);
-            PrintTasks(searchExpr, context);
-		}
-
-        private void PrintTasks(Regex searchExpr, CommandContext context)
+    public class TaskListView : ITaskListView
+    {
+        public static void Display(TaskList taskList, CommandContext context, string searchTerms)
         {
-            var matchList = new List<Task>( context.TaskList.Tasks );
+            // Create regex search string from commandArgs.
+            var searchExpr = new Regex(searchTerms, RegexOptions.IgnoreCase);
+            PrintTasks(taskList, searchExpr, context);
+        }
+
+        private static void PrintTasks(TaskList taskList, Regex searchExpr, CommandContext context)
+        {
+            var matchList = new List<Task>(taskList.Tasks);
 
             if (context.Filter != null)
             {
-                matchList = context.TaskList.Tasks
+                matchList = taskList.Tasks
                                      .Where(t => context.Filter.Matches(t))
                                      .ToList();
             }
@@ -125,7 +113,7 @@ namespace ClientConsole.Commands
             Console.ResetColor();
         }
 
-        private void PrintTask(Task task, CommandContext context)
+        private static void PrintTask(Task task, CommandContext context)
         {
             switch (task.Priority)
             {
@@ -215,6 +203,5 @@ namespace ClientConsole.Commands
                     return tasks;
             }
         }
-
-	}
+    }
 }

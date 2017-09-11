@@ -10,13 +10,11 @@ namespace ClientConsole.Commands
 {
 	public class DoCommand : ITodoCommand
 	{
-		private TaskList _taskList;
 		private IList<string> _keys = new List<string> {"do"};
 		private readonly Regex _inputPattern = new Regex(@"(\s*(?<id>\d+),?)+");
 
-		public DoCommand(TaskList taskList)
+		public DoCommand()
 		{
-			_taskList = taskList;
 		}
 
 		public IList<string> GetKeys()
@@ -26,21 +24,14 @@ namespace ClientConsole.Commands
 
 		public void Execute(string commandArgs, CommandContext context)
 		{
-			var filePath = context.ArchiveFilePath;
-			TaskList archiveList = null;
-
 			// Extract IDs from the commandArgs string and find it in the task list.
 			var matches = _inputPattern.Match(commandArgs);
 			var ids = matches.Groups["id"].Captures;
-			if (ids.Count > 0)
-			{
-				archiveList = new TaskList(filePath);
-			}
 
 			for (int i = 0; i < ids.Count; i++)
 			{
 				var id = Int32.Parse(ids[i].Value);
-				var task = _taskList.Tasks.FirstOrDefault(t => t.Id == id);
+                var task = context.TaskList.Tasks.FirstOrDefault( t => t.Id == id );
 				// TODO Handle not found.
 				if (task != null)
 				{
@@ -51,8 +42,8 @@ namespace ClientConsole.Commands
 					archTask.Completed = true;
 					archTask.CompletedDate = DateTime.Now;
 
-					archiveList.Add(archTask);
-					_taskList.Delete(task);
+                    context.ArchiveList.Add( archTask );
+                    context.TaskList.Delete( task );
 					Console.WriteLine("TODO: {0} marked as done.", archTask.Body);
 				}
 			}

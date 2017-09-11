@@ -10,7 +10,7 @@ namespace ClientConsole
 {
     public class ConsoleConfig
     {
-        private static readonly ConsoleConfig _config = new ConsoleConfig();
+        private static readonly ConsoleConfig Config = new ConsoleConfig();
 
         /// <summary>
         /// Set method is exposed so that the instance can be swapped out for Unit Testing.
@@ -19,7 +19,7 @@ namespace ClientConsole
         /// </summary>
         public static ConsoleConfig Instance
         {
-            get { return _config; }
+            get { return Config; }
         }
 
 

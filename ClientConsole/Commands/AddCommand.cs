@@ -8,12 +8,10 @@ namespace ClientConsole.Commands
 {
 	public class AddCommand : ITodoCommand
 	{
-		private TaskList _taskList;
 		private IList<string> _keys = new List<string> {"add", "a"};
 
-		public AddCommand(TaskList taskList)
+		public AddCommand()
 		{
-			_taskList = taskList;
 		}
 
 		public IList<string> GetKeys()
@@ -23,7 +21,7 @@ namespace ClientConsole.Commands
 
 		public void Execute(string commandArgs, CommandContext context)
 		{
-			_taskList.Add(new Task(commandArgs));
+            context.TaskList.Add(new Task(commandArgs));
 		}
 	}
 }

@@ -9,12 +9,10 @@ namespace ClientConsole.Commands
 {
     public class FilterCommand : ITodoCommand
     {
-        private TaskList _taskList;
         private IList<string> _keys = new List<string> { "filter" };
 
-        public FilterCommand(TaskList taskList)
+        public FilterCommand()
 		{
-			_taskList = taskList;
 		}
 
         public IList<string> GetKeys()

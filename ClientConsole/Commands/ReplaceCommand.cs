@@ -8,13 +8,11 @@ namespace ClientConsole.Commands
 {
 	public class ReplaceCommand : ITodoCommand
 	{
-		private TaskList _taskList;
 		private IList<string> _keys = new List<string> {"repl", "replace"};
 		private readonly Regex _inputPattern = new Regex(@"(?<id>\d+)\s+(?<update>.*)$");
 
-		public ReplaceCommand(TaskList taskList)
+		public ReplaceCommand()
 		{
-			_taskList = taskList;
 		}
 
 		public IList<string> GetKeys()
@@ -32,13 +30,13 @@ namespace ClientConsole.Commands
 			if (!String.IsNullOrEmpty(id))
 			{
 				var idNum = Int32.Parse(id);
-				var task = _taskList.Tasks.FirstOrDefault(t => t.Id == idNum);
+                var task = context.TaskList.Tasks.FirstOrDefault( t => t.Id == idNum );
 
 				// TODO Handle not found.
 				if (task != null)
 				{
 					task.Update(update);
-					_taskList.Save();
+                    context.TaskList.Save();
 					Console.WriteLine("Task {0} updated to {1}", id, update);
 				}
 			}

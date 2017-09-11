@@ -1,0 +1,17 @@
+---
+# Path to the main todo file
+file_path: "C:\\Users\\Chris.Jansen\\Dropbox\\Todo\\todo.txt"
+# Path to the archive file, for completed tasks
+archive_file_path: "C:\\Users\\Chris.Jansen\\Dropbox\\Todo\\done.txt"
+# Sort criteria
+sort_type: Alphabetical 
+# The current grouping
+group_by_type: Project
+# Boolean to indicate whether or not to add creation date to each new task
+add_creation_date: true
+# Boolean to indicate whether or not debug logging is enabled
+# debug_logging_on: true
+debug_level: 2
+list_on_start: true
+list_after_command: true
+chicken_feet: very tasty

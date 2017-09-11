@@ -13,13 +13,11 @@ namespace ClientConsole.Commands
 	/// </summary>
 	public class MoveProjectTasksCommand : ITodoCommand
 	{
-		private TaskList _taskList;
 		private IList<string> _keys = new List<string> {"mvproj"};
         private readonly Regex _inputPattern = new Regex(@"^(?<id>(all|\d+)\s+)?(?<proj1>\+?\w+)\s+(?<proj2>\+?\w+)");
 
-		public MoveProjectTasksCommand(TaskList taskList)
+		public MoveProjectTasksCommand()
 		{
-			_taskList = taskList;
 		}
 
 		public IList<string> GetKeys()
@@ -49,23 +47,25 @@ namespace ClientConsole.Commands
 			if (id == null)
 			{
 				// Get all tasks that have proj1 assigned.
-				var tasks = _taskList.Tasks.Where(t => t.Projects.Contains(proj1)).ToList();
+                var tasks = context.TaskList.Tasks.Where( t => t.Projects.Contains( proj1 ) ).ToList();
 
 				foreach (var task in tasks)
 				{
 					MoveTaskProject(task, proj1, proj2);
-				}
+                    context.TaskList.Save();
+                    Console.WriteLine( "Moved task {0} from {1} to {2}", task.Id, proj1, proj2 );
+                }
 			}
 			else
 			{
 				var intId = Int32.Parse(id);
-				var task = _taskList.Tasks.FirstOrDefault(t => t.Id == intId);
+                var task = context.TaskList.Tasks.FirstOrDefault( t => t.Id == intId );
 				// TODO Handle not found.
 				MoveTaskProject(task, proj1, proj2);
 			}
 		}
 
-		private void MoveTaskProject(Task task, string proj1, string proj2)
+		private static void MoveTaskProject(Task task, string proj1, string proj2)
 		{
 			if (task == null) return;
 
@@ -73,9 +73,6 @@ namespace ClientConsole.Commands
 
 			newTask.Projects.Remove(proj1);
 			newTask.Projects.Add(proj2);
-
-			_taskList.Save();
-			Console.WriteLine("Moved task {0} from {1} to {2}", task.Id, proj1, proj2);
 		}
 	}
 

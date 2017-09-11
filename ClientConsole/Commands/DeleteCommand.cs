@@ -16,13 +16,11 @@ namespace ClientConsole.Commands
 	// TODO: Implement support for [TERM].
 	public class DeleteCommand : ITodoCommand
 	{
-		private TaskList _taskList;
 		private IList<string> _keys = new List<string> { "del", "rm" };
 		private readonly Regex _inputPattern = new Regex(@"(?<id>\d+)");
 
-		public DeleteCommand(TaskList taskList)
+		public DeleteCommand()
 		{
-			_taskList = taskList;
 		}
 
 		public IList<string> GetKeys()
@@ -38,15 +36,15 @@ namespace ClientConsole.Commands
 			if (!String.IsNullOrEmpty(id))
 			{
 				var idNum = Int32.Parse(id);
-				var task = _taskList.Tasks.FirstOrDefault(t => t.Id == idNum);
+				var task = context.TaskList.Tasks.FirstOrDefault(t => t.Id == idNum);
 				// TODO Handle not found.
 				if (task != null)
 				{
 					Console.Write("Delete {0}? (y/n) ", task.Body);
 					var line = Console.ReadLine();
-					if (line.Trim() == "y")
+					if (!String.IsNullOrWhiteSpace(line) && line.Trim() == "y")
 					{
-						_taskList.Delete(task);
+                        context.TaskList.Delete( task );
 					}
 				}
 			}

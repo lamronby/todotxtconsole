@@ -9,13 +9,11 @@ namespace ClientConsole.Commands
 {
 	public class PriorityCommand : ITodoCommand
 	{
-		private TaskList _taskList;
 		private IList<string> _keys = new List<string> {"pri", "prio"};
 		private readonly Regex _inputPattern = new Regex(@"(?<id>\d+)\s+(?<priority>\(*[A-Z]\)*)");
 
-		public PriorityCommand(TaskList taskList)
+		public PriorityCommand()
 		{
-			_taskList = taskList;
 		}
 
 		public IList<string> GetKeys()
@@ -39,14 +37,14 @@ namespace ClientConsole.Commands
 			if (!String.IsNullOrEmpty(id))
 			{
 				var idNum = Int32.Parse(id);
-				var task = _taskList.Tasks.FirstOrDefault(t => t.Id == idNum);
+                var task = context.TaskList.Tasks.FirstOrDefault( t => t.Id == idNum );
 				var prioChar = Char.Parse(prio);
 
 				// TODO Handle not found.
 				if (task != null)
 				{
 					task.SetPriority(prioChar);
-					_taskList.Save();
+                    context.TaskList.Save();
 					Console.WriteLine("Priority for task {0} updated to {1}", id, prio);
 				}
 			}
