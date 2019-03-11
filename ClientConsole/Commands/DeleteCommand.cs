@@ -19,7 +19,9 @@ namespace ClientConsole.Commands
 		private IList<string> _keys = new List<string> { "del", "rm" };
 		private readonly Regex _inputPattern = new Regex(@"(?<id>\d+)");
 
-		public DeleteCommand()
+        public string Description => "Delete a todo list item";
+
+        public DeleteCommand()
 		{
 		}
 

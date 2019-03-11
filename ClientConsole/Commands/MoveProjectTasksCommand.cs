@@ -16,6 +16,8 @@ namespace ClientConsole.Commands
 		private IList<string> _keys = new List<string> {"mvproj"};
         private readonly Regex _inputPattern = new Regex(@"^(?<id>(all|\d+)\s+)?(?<proj1>\+?\w+)\s+(?<proj2>\+?\w+)");
 
+        public string Description => "Move all items from one project to another";
+
 		public MoveProjectTasksCommand()
 		{
 		}

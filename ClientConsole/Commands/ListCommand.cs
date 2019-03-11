@@ -12,7 +12,9 @@ namespace ClientConsole.Commands
 	{
 		private IList<string> _keys = new List<string> {"list", "ls"};
 
-		public ListCommand()
+        public string Description => "List all todo items. Add a search string to filter results.";
+
+        public ListCommand()
 		{
 		}
 

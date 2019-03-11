@@ -13,7 +13,9 @@ namespace ClientConsole.Commands
 		private IList<string> _keys = new List<string> {"do"};
 		private readonly Regex _inputPattern = new Regex(@"(\s*(?<id>\d+),?)+");
 
-		public DoCommand()
+        public string Description => "Finish a todo list item";
+
+        public DoCommand()
 		{
 		}
 

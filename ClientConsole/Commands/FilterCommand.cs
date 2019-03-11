@@ -11,6 +11,8 @@ namespace ClientConsole.Commands
     {
         private IList<string> _keys = new List<string> { "filter" };
 
+        public string Description => "Add or remove filters. To remove the current filter, specify without any arguments.";
+
         public FilterCommand()
 		{
 		}

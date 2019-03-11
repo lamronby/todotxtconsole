@@ -6,13 +6,13 @@ using ToDoLib;
 
 namespace ClientConsole.Commands
 {
-	public class AddCommand : ITodoCommand
+	public class ReloadCommand : ITodoCommand
 	{
-		private IList<string> _keys = new List<string> {"add", "a"};
+		private IList<string> _keys = new List<string> {"reload", "rel"};
 
-        public string Description => "Add a new todo list item";
+        public string Description => "Reload from the todo.txt file";
 
-        public AddCommand()
+        public ReloadCommand()
 		{
 		}
 

@@ -12,7 +12,9 @@ namespace ClientConsole.Commands
 		private IList<string> _keys = new List<string> {"pri", "prio"};
 		private readonly Regex _inputPattern = new Regex(@"(?<id>\d+)\s+(?<priority>\(*[A-Z]\)*)");
 
-		public PriorityCommand()
+        public string Description => "Set the priority of an existing task";
+
+        public PriorityCommand()
 		{
 		}
 

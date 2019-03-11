@@ -60,7 +60,12 @@ namespace ClientConsole
 				var raw = matches.Groups["raw"].Value.Trim();
 
 			    if (String.IsNullOrEmpty(cmd))
-			        Console.WriteLine("Show help");
+                {
+                    foreach (var cmd in _commands)
+                    {
+                        $"{cmd.Key}: {cmd.Value.Description}";
+                    }
+                }
 			    else
 			        ParseCommand(cmd, raw);
 			}

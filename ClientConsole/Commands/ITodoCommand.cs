@@ -7,7 +7,10 @@ namespace ClientConsole.Commands
 {
 	public interface ITodoCommand
 	{
-		IList<string> GetKeys(); 
-		void Execute(string commandArgs, CommandContext context);
+		IList<string> GetKeys();
+
+        string Description { get; }
+
+        void Execute(string commandArgs, CommandContext context);
 	}
 }

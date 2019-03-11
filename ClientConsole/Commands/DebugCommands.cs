@@ -9,6 +9,7 @@ namespace ClientConsole.Commands
     public class DebugCommands : ITodoCommand
     {
         private IList<string> _keys = new List<string> { "debug" };
+        public string Description => "Debug configuration";
 
         public IList<string> GetKeys()
         {

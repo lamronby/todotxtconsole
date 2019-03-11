@@ -1,6 +1,8 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.421
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientConsole", "ClientConsole\ClientConsole.csproj", "{9EAAF58D-1547-4516-90EF-FED7A74720D2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonExtensions", "CommonExtensions\CommonExtensions.csproj", "{5CE19CC1-833A-4950-B86E-CBF59FA00D6F}"
@@ -25,8 +27,8 @@ Global
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{9EAAF58D-1547-4516-90EF-FED7A74720D2}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{9EAAF58D-1547-4516-90EF-FED7A74720D2}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
-		{9EAAF58D-1547-4516-90EF-FED7A74720D2}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{9EAAF58D-1547-4516-90EF-FED7A74720D2}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{9EAAF58D-1547-4516-90EF-FED7A74720D2}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
 		{9EAAF58D-1547-4516-90EF-FED7A74720D2}.Debug|x86.ActiveCfg = Debug|x86
 		{9EAAF58D-1547-4516-90EF-FED7A74720D2}.Debug|x86.Build.0 = Debug|x86
 		{9EAAF58D-1547-4516-90EF-FED7A74720D2}.Release|Any CPU.ActiveCfg = Release|x86
@@ -67,5 +69,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5839E19C-0BAF-4BA1-A928-BA54A965A915}
 	EndGlobalSection
 EndGlobal

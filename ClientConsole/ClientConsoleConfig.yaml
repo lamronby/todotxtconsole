@@ -1,8 +1,8 @@
 ---
 # Path to the main todo file
-file_path: "C:\\Users\\Chris.Jansen\\Dropbox\\Todo\\todo.txt"
+file_path: "C:\\dev\\Dropbox\\Todo\\todo.txt"
 # Path to the archive file, for completed tasks
-archive_file_path: "C:\\Users\\Chris.Jansen\\Dropbox\\Todo\\done.txt"
+archive_file_path: "C:\\dev\\Dropbox\\Todo\\done.txt"
 # Sort criteria
 sort_type: Alphabetical 
 # The current grouping

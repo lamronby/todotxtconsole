@@ -10,8 +10,9 @@ namespace ClientConsole.Commands
 	{
 		private IList<string> _keys = new List<string> {"repl", "replace"};
 		private readonly Regex _inputPattern = new Regex(@"(?<id>\d+)\s+(?<update>.*)$");
+        public string Description => "Replace the contents of a task";
 
-		public ReplaceCommand()
+        public ReplaceCommand()
 		{
 		}
 
