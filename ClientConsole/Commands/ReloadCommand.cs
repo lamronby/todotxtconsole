@@ -23,7 +23,7 @@ namespace ClientConsole.Commands
 
 		public void Execute(string commandArgs, CommandContext context)
 		{
-            context.TaskList.Add(new Task(commandArgs));
+            context.TaskList.ReloadTasks();
 		}
 	}
 }

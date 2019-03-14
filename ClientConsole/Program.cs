@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -270,7 +271,11 @@ namespace ClientConsole
             }
 
             // TODO Create file if it doesn't exist.
-
+            if (!File.Exists(filePath))
+            {
+                throw new ArgumentException($"Todo file path does not exist: {filePath}");
+            }
+            
             var taskList = LoadTasks(filePath);
             var archiveTaskList = LoadTasks(filePath);
 

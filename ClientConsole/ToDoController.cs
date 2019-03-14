@@ -66,18 +66,24 @@ namespace ClientConsole
 				Console.Write("todo=> ");
 				var line = Console.ReadLine();
 
-				if (line != null && line.Trim().ToLower() == "q")
+				if (line?.Trim().ToLower() == "q")
 					break;
 
-				var matches = _inputPattern.Match(line);
-				var cmd = matches.Groups["command"].Value.Trim();
-				var raw = matches.Groups["raw"].Value.Trim();
-
-			    if (String.IsNullOrEmpty(cmd))
-			        Console.WriteLine("Show help");
-			    else
-			        ParseCommand(cmd, raw);
-
+                if (string.IsNullOrEmpty(line?.Trim()))
+                {
+                    foreach (var cmd in _commands.OrderBy(c => c.Key))
+                    {
+                        Console.WriteLine( $"{cmd.Key,-8}: {cmd.Value.Description}" );
+                    }
+                }
+                else
+                {
+                    var matches = _inputPattern.Match(line);
+                    var cmd = matches.Groups["command"].Value.Trim();
+                    var raw = matches.Groups["raw"].Value.Trim();
+                    ParseCommand(cmd, raw);
+                }
+                
                 if (_context.ListAfterCommand)
 			        TaskListView.Display(_context.TaskList, _context, "");
 			}
