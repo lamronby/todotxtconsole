@@ -13,5 +13,5 @@ add_creation_date: true
 # debug_logging_on: true
 debug_level: 2
 list_on_start: true
-list_after_command: true
+list_after_command: false
 chicken_feet: very tasty

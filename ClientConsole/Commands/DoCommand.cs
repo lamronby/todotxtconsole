@@ -44,7 +44,7 @@ namespace ClientConsole.Commands
 					archTask.Completed = true;
 					archTask.CompletedDate = DateTime.Now;
 
-                    context.ArchiveList.Add( archTask );
+					context.TasksToArchive.Add( archTask );
                     context.TaskList.Delete( task );
 					Console.WriteLine("TODO: {0} marked as done.", archTask.Body);
 				}

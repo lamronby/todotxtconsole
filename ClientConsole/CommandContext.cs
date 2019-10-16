@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using ToDoLib;
 
 namespace ClientConsole
@@ -8,8 +9,8 @@ namespace ClientConsole
     {
         public TaskList TaskList { get; set; }
 
-        public TaskList ArchiveList { get; set; }
-
+        public List<Task> TasksToArchive { get; } = new List<Task>();
+        
         public SortType SortType { get; set; }
 
         public GroupByType GroupByType { get; set; }

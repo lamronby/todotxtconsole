@@ -270,18 +270,29 @@ namespace ClientConsole
                 return;
             }
 
+            var archiveFilePath = configService.GetValue( "archive_file_path" );
+            if ( string.IsNullOrEmpty( archiveFilePath ) )
+            {
+                // Don't use an archive file, just archive within the main file 
+                Console.WriteLine($"Archive file not specified, will archive into {filePath}");
+                archiveFilePath = filePath;
+            }
+
             // TODO Create file if it doesn't exist.
             if (!File.Exists(filePath))
             {
                 throw new ArgumentException($"Todo file path does not exist: {filePath}");
             }
             
+            if (!File.Exists(archiveFilePath))
+            {
+                throw new ArgumentException($"Archive file path does not exist: {archiveFilePath}");
+            }
             var taskList = LoadTasks(filePath);
-            var archiveTaskList = LoadTasks(filePath);
 
             var commands = LoadCommands();
 
-            IToDoController controller = new ToDoController(configService, taskList, archiveTaskList, commands, new TaskListView());
+            IToDoController controller = new ToDoController(configService, taskList, archiveFilePath, commands, new TaskListView());
 
             controller.Run();
         }

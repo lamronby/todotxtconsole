@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -18,6 +19,7 @@ namespace ClientConsole
         private IDictionary<string, ITodoCommand> _commands = new Dictionary<string, ITodoCommand>();
 
         private CommandContext _context;
+        private string _archiveFilePath;
 
         private readonly IConfigService _configService;
         private ITaskListView _taskListView;
@@ -25,18 +27,18 @@ namespace ClientConsole
         public ToDoController(
             IConfigService configService,
             TaskList taskList,
-            TaskList archiveTaskList,
+            string archiveFilePath,
             IDictionary<string, ITodoCommand> commands,
             ITaskListView taskListView)
         {
             _configService = configService;
             _commands = commands;
             _taskListView = taskListView;
+            _archiveFilePath = archiveFilePath;
 
             _context = new CommandContext()
             {
                 TaskList =  taskList,
-                ArchiveList = archiveTaskList,
                 DebugLevel = Int32.Parse( configService.GetValue( "debug_level" ) ),
                 GroupByType = DotNetExtensions.ParseEnum<GroupByType>(configService.GetValue("group_by_type"), GroupByType.None),
                 SortType = DotNetExtensions.ParseEnum<SortType>(configService.GetValue("sort_type"), SortType.Project),
@@ -81,7 +83,7 @@ namespace ClientConsole
                     var matches = _inputPattern.Match(line);
                     var cmd = matches.Groups["command"].Value.Trim();
                     var raw = matches.Groups["raw"].Value.Trim();
-                    ParseCommand(cmd, raw);
+                    ExecuteCommand(cmd, raw);
                 }
                 
                 if (_context.ListAfterCommand)
@@ -89,7 +91,7 @@ namespace ClientConsole
 			}
         }
 
-        private bool ParseCommand(string command, string raw)
+        private bool ExecuteCommand(string command, string raw)
         {
             bool success = false;
 
@@ -97,6 +99,7 @@ namespace ClientConsole
             {
                 var cmd = _commands[command.ToLower()];
                 cmd.Execute(raw, _context);
+                ProcessArchiveTasks();
                 success = true;
             }
             else
@@ -106,6 +109,35 @@ namespace ClientConsole
             }
 
             return success;
+        }
+
+        private void ProcessArchiveTasks()
+        {
+            if (_context.TasksToArchive.Count == 0) return;
+
+            try
+            {
+                using (var writer = File.AppendText(_archiveFilePath))
+                {
+                    foreach (var task in _context.TasksToArchive)
+                    {
+                        var archiveTask = task.ToString();
+                        Log.Debug("Archiving task '{0}'", archiveTask);
+                        writer.WriteLine(archiveTask);
+                    }
+                }
+            }
+            catch (IOException ex)
+            {
+                var msg = "An error occurred while trying to archive a task to the archive file";
+                Log.Error(msg, ex);
+                throw new TaskException(msg, ex);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.ToString());
+                throw;
+            }
         }
     }
 }
