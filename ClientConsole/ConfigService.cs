@@ -6,6 +6,12 @@ namespace ClientConsole
 {
     public class ConfigService : IConfigService
     {
+        public static string FILE_PATH_KEY = "file_path";
+        public static string ARCHIVE_FILE_PATH_KEY = "archive_file_path";
+        public static string SORT_TYPE_KEY = "sort_type";
+        public static string GROUP_BY_TYPE_KEY = "group_by_type";
+        public static string FILTER_TEXT_KEY = "filter_text";
+            
         private Dictionary<string, string> _todoConfig;
 
         public ConfigService()

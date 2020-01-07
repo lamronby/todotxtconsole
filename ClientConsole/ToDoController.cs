@@ -40,9 +40,9 @@ namespace ClientConsole
             {
                 TaskList =  taskList,
                 DebugLevel = Int32.Parse( configService.GetValue( "debug_level" ) ),
-                GroupByType = DotNetExtensions.ParseEnum<GroupByType>(configService.GetValue("group_by_type"), GroupByType.None),
-                SortType = DotNetExtensions.ParseEnum<SortType>(configService.GetValue("sort_type"), SortType.Project),
-                Filter = new TaskFilter(ConsoleConfig.Instance.FilterText),
+                GroupByType = DotNetExtensions.ParseEnum<GroupByType>(configService.GetValue(ConfigService.GROUP_BY_TYPE_KEY), GroupByType.None),
+                SortType = DotNetExtensions.ParseEnum<SortType>(configService.GetValue(ConfigService.SORT_TYPE_KEY), SortType.Project),
+                Filter = new TaskFilter(configService.GetValue(ConfigService.FILTER_TEXT_KEY)),
             };
 
             bool listOnStart;

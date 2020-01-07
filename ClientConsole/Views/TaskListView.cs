@@ -105,7 +105,7 @@ namespace ClientConsole.Views
             }
             else
             {
-                foreach (var task in Sort(matchList))
+                foreach (var task in Sort(matchList, context.SortType))
                 {
                     PrintTask(task, context);
                 }
@@ -163,11 +163,11 @@ namespace ClientConsole.Views
             Console.ResetColor();
         }
 
-        private static IEnumerable<Task> Sort(IEnumerable<Task> tasks)
+        private static IEnumerable<Task> Sort(IEnumerable<Task> tasks, SortType sortType)
         {
-            Log.Debug("Sorting {0} tasks by {1}", tasks.Count().ToString(), ConsoleConfig.Instance.SortType.ToString());
+            Log.Debug("Sorting {0} tasks by {1}", tasks.Count().ToString(), sortType.ToString());
 
-            switch (ConsoleConfig.Instance.SortType)
+            switch (sortType)
             {
                 // nb, we sub-sort by completed for most sorts by prepending either a or z
                 case SortType.Completed:

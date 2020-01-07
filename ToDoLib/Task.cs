@@ -96,7 +96,7 @@ namespace ToDoLib
 
 		public Task(int id, string raw)
 			: this(raw)
-		{
+ 		{
 			Id = id;
 		}
 

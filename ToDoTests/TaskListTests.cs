@@ -14,31 +14,33 @@ namespace ToDoTests
     class TaskListTests
     {
 
-		[TestFixtureSetUp]
-		public void TFSetup()
+        public static string TestDataPath = Environment.CurrentDirectory + "testtasks.txt";
+
+		[OneTimeSetUp]
+		public void Setup()
 		{
-			if (!File.Exists(Data.TestDataPath))
-				File.WriteAllText(Data.TestDataPath, "");
+			if (!File.Exists(TestDataPath))
+				File.WriteAllText(TestDataPath, "");
 		}
 
-		[TestFixtureTearDown]
+		[OneTimeTearDown]
 		public void TearDown()
 		{
-			if (File.Exists(Data.TestDataPath))
-				File.Delete(Data.TestDataPath);
+			if (File.Exists(TestDataPath))
+				File.Delete(TestDataPath);
 		}
         
 		[Test]
         public void Construct()
         {
-            var tl = new TaskList(Data.TestDataPath);
+            var tl = new TaskList(TestDataPath);
         }
 
 
         [Test]
         public void Load_From_File()
         {
-            var tl = new TaskList(Data.TestDataPath);
+            var tl = new TaskList(TestDataPath);
             var tasks = tl.Tasks;
         }
 
@@ -47,7 +49,7 @@ namespace ToDoTests
         {
             var task = new Task("(B) Add_ToCollection +test @task");
 
-            var tl = new TaskList(Data.TestDataPath);
+            var tl = new TaskList(TestDataPath);
 
             var tasks = new List<Task>(tl.Tasks);
             tasks.Add(task);
@@ -65,14 +67,14 @@ namespace ToDoTests
         [Test]
         public void Add_ToFile()
         {
-            var fileContents = File.ReadAllLines(Data.TestDataPath).ToList();
+            var fileContents = File.ReadAllLines(TestDataPath).ToList();
             fileContents.Add("(B) Add_ToFile +test @task");
 
             var task = new Task(fileContents.Last());
-            var tl = new TaskList(Data.TestDataPath);
+            var tl = new TaskList(TestDataPath);
             tl.Add(task);
 
-            var newFileContents = File.ReadAllLines(Data.TestDataPath);
+            var newFileContents = File.ReadAllLines(TestDataPath);
             CollectionAssert.AreEquivalent(fileContents, newFileContents);
         }
 
@@ -81,9 +83,9 @@ namespace ToDoTests
         {
             // v0.3 and earlier contained a bug where a blank task was added
 
-            File.WriteAllLines(Data.TestDataPath, new string[] { }); // empties the file
+            File.WriteAllLines(TestDataPath, new string[] { }); // empties the file
 
-            var tl = new TaskList(Data.TestDataPath);
+            var tl = new TaskList(TestDataPath);
             tl.Add(new Task("A task"));
 
             Assert.AreEqual(1,tl.Tasks.Count());
@@ -93,7 +95,7 @@ namespace ToDoTests
         [Test]
         public void Add_Multiple()
         {
-            var tl = new TaskList(Data.TestDataPath);
+            var tl = new TaskList(TestDataPath);
             var c = tl.Tasks.Count();
 
             var task = new Task("Add_Multiple task one");
@@ -109,13 +111,14 @@ namespace ToDoTests
         public void Delete_InCollection()
         {
             var task = new Task("(B) Delete_InCollection +test @task");
-            var tl = new TaskList(Data.TestDataPath);
+            var tl = new TaskList(TestDataPath);
             tl.Add(task);
 
             var tasks = new List<Task>(tl.Tasks);
-            tasks.Remove(tasks.Where(x => x == task).First());
+            Console.WriteLine($"{ReferenceEquals(task, tasks.First())}");
+            Console.WriteLine($"{task == tasks.First()}");
+            tasks.Remove(tasks.First(x => x == task));
 
-            
             tl.Delete(task);
 
             var newTasks = tl.Tasks.ToList();
@@ -129,14 +132,14 @@ namespace ToDoTests
         [Test]
         public void Delete_InFile()
         {
-            var fileContents = File.ReadAllLines(Data.TestDataPath).ToList();
+            var fileContents = File.ReadAllLines(TestDataPath).ToList();
             var task = new Task(fileContents.Last());
             fileContents.Remove(fileContents.Last());
 
-            var tl = new TaskList(Data.TestDataPath);
+            var tl = new TaskList(TestDataPath);
             tl.Delete(task);
 
-            var newFileContents = File.ReadAllLines(Data.TestDataPath);
+            var newFileContents = File.ReadAllLines(TestDataPath);
             CollectionAssert.AreEquivalent(fileContents, newFileContents);
         }
 
@@ -145,13 +148,15 @@ namespace ToDoTests
         {
             var task = new Task("(B) Update_InCollection +test @task");
 
-            var tl = new TaskList(Data.TestDataPath);
+            var tl = new TaskList(TestDataPath);
             tl.Add(task);
 
             task.Completed = true;
 
             tl.Save();
 
+            Console.WriteLine($"{ReferenceEquals(task, tl.Tasks.Last())}");
+            Console.WriteLine($"{task == tl.Tasks.Last()}");
             var newTask = tl.Tasks.Last();
             Assert.IsTrue(newTask.Completed);
         }
@@ -159,13 +164,13 @@ namespace ToDoTests
 		[Test]
 		public void Read_when_file_is_open_in_another_process()
 		{
-			var t = new TaskList(Data.TestDataPath);
+			var t = new TaskList(TestDataPath);
 		
 			var thread = new Thread(x =>
 				{
 					try
 					{
-						var f = File.Open(Data.TestDataPath, FileMode.Open, FileAccess.ReadWrite);
+						var f = File.Open(TestDataPath, FileMode.Open, FileAccess.ReadWrite);
 						using (var s = new StreamWriter(f))
 						{
 							s.WriteLine("hello");

@@ -227,14 +227,14 @@ namespace ClientConsole
         */
         static void Main(string[] args)
         {
+            var configService = new ConfigService();
+
             var showHelp = false;
             var p = new OptionSet() {
-				{ "f|TodoFile=", "The todo file", f => ConsoleConfig.Instance.FilePath = f},
-				{ "a|ArchiveFile=", "The archive file", a => ConsoleConfig.Instance.ArchiveFilePath = a},
-				{ "s|SortBy=", "Specify a sort.", s => ConsoleConfig.Instance.SortType = 
-                    DotNetExtensions.ParseEnum<SortType>(s, SortType.None)},
-				{ "g|GroupBy=", "Specify a grouping.", g => ConsoleConfig.Instance.GroupByType = 
-                    DotNetExtensions.ParseEnum<GroupByType>(g, GroupByType.Project)},
+				{ "f|TodoFile=", "The todo file", f => configService.SetValue(ConfigService.FILE_PATH_KEY, f)},
+				{ "a|ArchiveFile=", "The archive file", a => configService.SetValue(ConfigService.ARCHIVE_FILE_PATH_KEY, a)},
+				{ "s|SortBy=", "Specify a sort.", s => configService.SetValue(ConfigService.SORT_TYPE_KEY, DotNetExtensions.ParseEnum<SortType>(s, SortType.None).ToString())},
+				{ "g|GroupBy=", "Specify a grouping.", g => configService.SetValue(ConfigService.GROUP_BY_TYPE_KEY, DotNetExtensions.ParseEnum<GroupByType>(g, GroupByType.Project).ToString())},
 				{ "h|help",  "Display help", v => showHelp = v != null },
 				};
 
@@ -261,8 +261,6 @@ namespace ClientConsole
             {
                 Console.WriteLine(e);
             }
-
-            var configService = new ConfigService();
 
             var filePath = configService.GetValue( "file_path" );
             if ( string.IsNullOrEmpty( filePath ) )
