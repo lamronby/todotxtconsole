@@ -20,9 +20,13 @@ namespace ToDoLib
         // for CRUDing the todo.txt file. 
         
         private List<Task> _tasks;
-        private string _filePath;
+        private readonly string _filePath;
     	private int _nextId = 0;
 
+        public DateTime LastModifiedDate => File.GetLastAccessTime(_filePath);
+
+        public DateTime LastTaskListLoadDate { get; private set; }
+        
         public List<Task> Tasks { get { return _tasks; } }
 
     	public List<string> Priorities
@@ -39,7 +43,8 @@ namespace ToDoLib
     	{
 			get { return _tasks.SelectMany(t => t.Projects).Distinct().ToList(); }
 		}
- 
+
+        
         public TaskList(string filePath)
         {
             _filePath = filePath;
@@ -116,7 +121,7 @@ namespace ToDoLib
 							_tasks.Remove(toRemove);
 						}
 					}
-					Log.Debug("Finished (re)loading tasks from {0}", _filePath);
+					Log.Debug("Finished reloading tasks from {0}", _filePath);
 				}
 				else
             	{
@@ -128,6 +133,7 @@ namespace ToDoLib
 					}
 					Log.Debug("Finished loading tasks from {0}", _filePath);
 				}
+				this.LastTaskListLoadDate = DateTime.Now;
             }
             catch (IOException ex)
             {

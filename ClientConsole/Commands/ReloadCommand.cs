@@ -23,7 +23,18 @@ namespace ClientConsole.Commands
 
 		public void Execute(string commandArgs, CommandContext context)
 		{
-            context.TaskList.ReloadTasks();
+			Console.WriteLine($"Todo list last loaded: {context.TaskList.LastTaskListLoadDate:MM/dd/yyyy HH:mm:ss}");
+			Console.WriteLine($"Current todo file date: {context.TaskList.LastModifiedDate:MM/dd/yyyy HH:mm:ss}");
+			if (context.TaskList.LastModifiedDate > context.TaskList.LastTaskListLoadDate)
+			{
+				Console.Write($"Current todo file date is more recent ({context.TaskList.LastModifiedDate:MM/dd/yyyy HH:mm:ss}), reloading...");
+				context.TaskList.ReloadTasks();
+				Console.WriteLine("Done.");
+			}
+			else
+			{
+				Console.WriteLine($"Todo list is up-to-date, no reload needed.");
+			}
 		}
 	}
 }

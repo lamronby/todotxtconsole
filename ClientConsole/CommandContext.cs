@@ -23,7 +23,11 @@ namespace ClientConsole
 
         public Dictionary<string, string> OtherConfig { get; set; }
 
-        public int DebugLevel { get; set; }
+        public int DebugLevel
+        {
+            get { return (int) Log.LogLevel; }
+            set { Log.LogLevel = (LogLevel) value; }
+        }
 
         public override string ToString( )
         {

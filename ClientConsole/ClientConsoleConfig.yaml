@@ -9,6 +9,7 @@ sort_type: Alphabetical
 group_by_type: Project
 # Boolean to indicate whether or not to add creation date to each new task
 add_creation_date: true
+filter_text:
 # Boolean to indicate whether or not debug logging is enabled
 # debug_logging_on: true
 debug_level: 2
