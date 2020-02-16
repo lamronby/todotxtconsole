@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
+using System.Linq;
 using ToDoLib;
 
 namespace ClientConsole
@@ -31,9 +30,9 @@ namespace ClientConsole
 
         public override string ToString( )
         {
-            return String.Format( "SortType: {0}, GroupByType: {1}",
-                this.SortType,
-                this.GroupByType );
+            var otherConfig = this.OtherConfig == null ? "" : string.Join(", ", this.OtherConfig.Select(kv => $"{kv.Key}: {kv.Value}"));
+            
+            return $"DebugLevel: {this.DebugLevel}, Filter: {this.Filter}, GroupByType: {this.GroupByType}, ListAfterCommand? {this.ListAfterCommand}, ListOnStart? {this.ListOnStart}, SortType: {this.SortType}. OtherConfig: {otherConfig}";
         }
     }
 }

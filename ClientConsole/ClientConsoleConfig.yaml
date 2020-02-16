@@ -12,7 +12,7 @@ add_creation_date: true
 filter_text:
 # Boolean to indicate whether or not debug logging is enabled
 # debug_logging_on: true
-debug_level: 2
+debug_level: 1
 list_on_start: true
 list_after_command: false
 chicken_feet: very tasty

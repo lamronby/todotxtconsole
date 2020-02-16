@@ -8,7 +8,7 @@ namespace ToDoLib
 {
     public enum LogLevel
     {
-        Error,
+        Error = 0,
         Debug
     }
 

@@ -45,7 +45,9 @@ namespace ClientConsole
                 Filter = new TaskFilter(configService.GetValue(ConfigService.FILTER_TEXT_KEY)),
             };
 
-            bool listOnStart;
+            Console.WriteLine($"Command context: DebugLevel: {_context.DebugLevel}, GroupByType: {_context.GroupByType.ToString()}, SortType: {_context.SortType.ToString()}, Filter: {_context.Filter}");
+            
+            bool listOnStart; 
             if ( Boolean.TryParse( configService.GetValue( "list_on_start" ), out listOnStart ) )
             {
                 _context.ListOnStart = listOnStart;
@@ -126,6 +128,7 @@ namespace ClientConsole
                         writer.WriteLine(archiveTask);
                     }
                 }
+                _context.TasksToArchive.Clear();
             }
             catch (IOException ex)
             {

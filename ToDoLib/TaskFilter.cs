@@ -70,8 +70,7 @@ namespace ToDoLib
             // Format:
             // <body> project(s): <projects>, context(s): <contexts>
             var str = "";
-            str = string.Format("{0} project(s): {1} context(s): {2}",
-                Body, string.Join(" ", Projects), string.Join(" ", Contexts));
+            str = $"{Body} project(s): {string.Join(" ", Projects)} context(s): {string.Join(" ", Contexts)}";
 
             return str;
         }
