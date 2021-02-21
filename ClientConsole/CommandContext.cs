@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using ToDoLib;
 
 namespace ClientConsole
@@ -22,17 +22,12 @@ namespace ClientConsole
 
         public Dictionary<string, string> OtherConfig { get; set; }
 
-        public int DebugLevel
-        {
-            get { return (int) Log.LogLevel; }
-            set { Log.LogLevel = (LogLevel) value; }
-        }
+        public int DebugLevel { get; set; }
 
         public override string ToString( )
         {
-            var otherConfig = this.OtherConfig == null ? "" : string.Join(", ", this.OtherConfig.Select(kv => $"{kv.Key}: {kv.Value}"));
+            return $"DebugLevel: {this.DebugLevel}, Filter: {this.Filter}, GroupByType: {this.GroupByType}, ListAfterCommand? {this.ListAfterCommand}, ListOnStart? {this.ListOnStart}, SortType: {this.SortType}.";
             
-            return $"DebugLevel: {this.DebugLevel}, Filter: {this.Filter}, GroupByType: {this.GroupByType}, ListAfterCommand? {this.ListAfterCommand}, ListOnStart? {this.ListOnStart}, SortType: {this.SortType}. OtherConfig: {otherConfig}";
         }
     }
 }

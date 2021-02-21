@@ -25,13 +25,13 @@ namespace ToDoLib
 
 	public class Task : IComparable
 	{
-		private const string CompletedPattern = @"^X\s((\d{4})-(\d{2})-(\d{2}))?";
-		private const string priorityPattern = @"^(?<priority>\([A-Z]\)\s)";
-		private const string createdDatePattern = @"(?<date>(\d{4})-(\d{2})-(\d{2}))";
-		private const string dueRelativePattern = @"due:(?<dateRelative>today|tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday)";
-		private const string dueDatePattern = @"due:(?<date>(\d{4})-(\d{2})-(\d{2}))";
-        private const string projectPattern = @"(?<proj>\+[^\s]+)";
-        private const string contextPattern = @"(?<context>\@[^\s]+)";
+		private static Regex completedRegex = new Regex(@"^X\s((\d{4})-(\d{2})-(\d{2}))?", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+		private static Regex priorityRegex = new Regex(@"^(?<priority>\([A-Z]\)\s)", RegexOptions.Compiled);
+		private static Regex createdDateRegex  = new Regex(@"(?<date>(\d{4})-(\d{2})-(\d{2}))", RegexOptions.Compiled);
+		private static Regex dueRelativeRegex = new Regex(@"due:(?<dateRelative>today|tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday)", RegexOptions.Compiled);
+		private static Regex dueDateRegex = new Regex(@"due:(?<date>(\d{4})-(\d{2})-(\d{2}))", RegexOptions.Compiled);
+        private static Regex projectRegex = new Regex(@"(?<proj>\+[^\s]+)", RegexOptions.Compiled);
+        private static Regex contextRegex = new Regex(@"(?<context>\@[^\s]+)", RegexOptions.Compiled);
 
 		public int Id { get; internal set; }
 		public List<string> Projects { get; set; }
@@ -187,7 +187,6 @@ namespace ToDoLib
 			Priority = priorityString;
 		}
 
-		//TODO priority regex need to only recognize upper case single chars
 		private void ParseRaw(string raw)
 		{
 			// because we are removing matches as we go, the order we process is important. It must be:
@@ -198,9 +197,7 @@ namespace ToDoLib
 			// - projects | contexts
 			// What we have left is the body
 
-			var reg = new Regex(CompletedPattern, RegexOptions.IgnoreCase);
-
-			var s = reg.Match(raw).Value.Trim();
+			var s = completedRegex.Match(raw).Value.Trim();
 
 			if (string.IsNullOrEmpty(s))
 			{
@@ -214,24 +211,19 @@ namespace ToDoLib
 				if (s.Length > 1)
 					CompletedDate = DateTime.Parse(s.Substring(2));
 			}
-			raw = reg.Replace(raw, "");
+			raw = completedRegex.Replace(raw, "");
 
+			Priority = priorityRegex.Match(raw).Groups["priority"].Value.Trim();
+			raw = priorityRegex.Replace(raw, "");
 
-			reg = new Regex(priorityPattern, RegexOptions.IgnoreCase);
-			Priority = reg.Match(raw).Groups["priority"].Value.Trim();
-			raw = reg.Replace(raw, "");
+			DueDate = dueDateRegex.Match(raw).Groups["date"].Value.Trim();
+			raw = dueDateRegex.Replace(raw, "");
 
-			reg = new Regex(dueDatePattern);
-			DueDate = reg.Match(raw).Groups["date"].Value.Trim();
-			raw = reg.Replace(raw, "");
-
-			reg = new Regex(createdDatePattern);
-			CreationDate = reg.Match(raw).Groups["date"].Value.Trim();
-			raw = reg.Replace(raw, "");
+			CreationDate = createdDateRegex.Match(raw).Groups["date"].Value.Trim();
+			raw = createdDateRegex.Replace(raw, "");
 
 			Projects = new List<string>();
-			reg = new Regex(projectPattern);
-			var projects = reg.Matches(raw);
+			var projects = projectRegex.Matches(raw);
 
 			foreach (Match project in projects)
 			{
@@ -239,12 +231,10 @@ namespace ToDoLib
 				Projects.Add(p);
 			}
 
-			raw = reg.Replace(raw, "");
-
+			raw = projectRegex.Replace(raw, "");
 
 			Contexts = new List<string>();
-			reg = new Regex(contextPattern);
-			var contexts = reg.Matches(raw);
+			var contexts = contextRegex.Matches(raw);
 
 			foreach (Match context in contexts)
 			{
@@ -252,9 +242,8 @@ namespace ToDoLib
 				Contexts.Add(c);
 			}
 
-			raw = reg.Replace(raw, "");
-
-
+			raw = contextRegex.Replace(raw, "");
+			
 			Body = raw.Trim();
 		}
 
