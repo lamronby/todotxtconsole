@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using CommonExtensions;
@@ -23,22 +24,40 @@ namespace ToDoLib
 		Overdue	
 	}
 
-	public class Task : IComparable
+	public class Task : IComparable, IComparable<Task>, IEquatable<Task>
 	{
-		private const string CompletedPattern = @"^X\s((\d{4})-(\d{2})-(\d{2}))?";
-		private const string priorityPattern = @"^(?<priority>\([A-Z]\)\s)";
-		private const string createdDatePattern = @"(?<date>(\d{4})-(\d{2})-(\d{2}))";
-		private const string dueRelativePattern = @"due:(?<dateRelative>today|tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday)";
-		private const string dueDatePattern = @"due:(?<date>(\d{4})-(\d{2})-(\d{2}))";
-        private const string projectPattern = @"(?<proj>\+[^\s]+)";
-        private const string contextPattern = @"(?<context>\@[^\s]+)";
+		// Following original todo.txt rules, each task may start with up to four known fields:
+		// "x": marks completion
+		// (A): priority (optional)
+		// YYYY-MM-DD: completion date
+		// YYYY-MM-DD: creation date
+		private static readonly Regex InitialFieldsRegex =
+			new Regex(
+				@"^(?<completed>x\s)?(?<priority>\([A-Z]\)\s)?(?<date1>((\d{4})-(\d{2})-(\d{2})\s))?(?<date2>((\d{4})-(\d{2})-(\d{2})\s))?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private static readonly Regex CompletedRegex = new Regex(@"^X\s((\d{4})-(\d{2})-(\d{2}))?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private static readonly Regex PriorityRegex = new Regex(@"^(?<priority>\([A-Z]\)\s)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private static readonly Regex CreatedDateRegex = new Regex(@"(?<date>(\d{4})-(\d{2})-(\d{2}))", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+		private const string RelativeDatePatternBare =
+			@"(?<dateRelative>today|tomorrow|(?<weekday>mon(?:day)?|tue(?:sday)?|wed(?:nesday)?|thu(?:rsday)?|fri(?:day)?|sat(?:urday)?|sun(?:day)?))";
+
+		private static readonly Regex RelativeDatePatternRegex =
+			new Regex(RelativeDatePatternBare, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		
+		private static readonly Regex DueRelativeRegex = new Regex(@"\bdue:" + RelativeDatePatternBare + @"\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private static readonly Regex DueDateRegex = new Regex(@"due:(?<date>(\d{4})-(\d{2})-(\d{2}))", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private static readonly Regex ThresholdRelativeRegex = new Regex(@"t:"+ RelativeDatePatternBare, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private static readonly Regex ThresholdDateRegex = new Regex(@"t:(?<date>(\d{4})-(\d{2})-(\d{2}))", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private static readonly Regex ProjectRegex = new Regex(@"(?<proj>\+[^\s]+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private static readonly Regex ContextRegex = new Regex(@"(?<context>\@[^\s]+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 		public int Id { get; internal set; }
 		public List<string> Projects { get; set; }
 		public List<string> Contexts { get; set; }
-		public string DueDate { get; set; }
+		public DateTime? DueDate { get; set; }
 		public DateTime? CompletedDate { get; set; }
-		public string CreationDate { get; set; }
+		public DateTime? CreationDate { get; set; }
+		public DateTime? ThresholdDate { get; set; }
 		public string Priority { get; set; }
 		public string Body { get; set; }
 
@@ -73,18 +92,16 @@ namespace ToDoLib
 				if (Completed)
 					return Due.NotDue;
 
-				DateTime tmp = new DateTime();
-
-				if (!DateTime.TryParse(DueDate, out tmp))
+				if (!DueDate.HasValue)
 					return Due.NotDue;
-
-					if (tmp < DateTime.Today)
+				
+				if (DueDate < DateTime.Today)
 					return Due.Overdue;
-					if (tmp == DateTime.Today)
+				if (DueDate == DateTime.Today)
 					return Due.Today;
 				return Due.NotDue;
-				}
-				}
+			}
+		}
 
 		// Parsing needs to comply with these rules: https://github.com/ginatrapani/todo.txt-touch/wiki/Todo.txt-File-Format
 
@@ -105,7 +122,7 @@ namespace ToDoLib
 			Priority = priority;
 			Projects = projects;
 			Contexts = contexts;
-			DueDate = dueDate;
+			DueDate = dueDate == "" ? null : DateTime.Parse(dueDate);
 			Body = body;
 			Completed = completed;
 		}
@@ -118,14 +135,15 @@ namespace ToDoLib
 		public override string ToString()
 		{
 			// Format:
-			// <id> <completed_flag> <completed_date> <priority> <body> <projects> <contexts>
-			var str = "";
-			str = string.Format("{0}{1}{2} {3} {4}",
-				Completed ? "x " + CompletedDate.Value.ToString("yyyy-MM-dd") : "",
-				String.IsNullOrEmpty(Priority) ? "" : Priority + " ",
-                Body, string.Join(" ", Projects), string.Join(" ", Contexts));
-
-			return str;
+			// <completed_flag> <completed_date> <creation_date> <priority> <body> <due_date> <projects> <contexts>
+			return string.Format("{0}{1}{2}{3}{4}{5}{6}",
+				Completed ? "x " + CompletedDate.Value.ToString("yyyy-MM-dd ") : "",
+				CreationDate.HasValue ? CreationDate.Value.ToString("yyyy-MM-dd ") : "",
+				string.IsNullOrEmpty(Priority) ? "" : Priority + " ",
+				Body,
+				DueDate.HasValue ? DueDate.Value.ToString(" due:yyyy-MM-dd ") : "",
+				Projects == null ? "" : " " + string.Join(" ", Projects),
+				Contexts == null ? "" : " " + string.Join(" ", Contexts));
 		}
 
 		public Task Clone()
@@ -133,10 +151,68 @@ namespace ToDoLib
 			return (Task)this.MemberwiseClone();
 		}
 
-		public int CompareTo(object obj)
+		public override bool Equals(object right)
 		{
-			var other = (Task)obj;
+			// check null. This pointer is never null in C# methods.
+			if (object.ReferenceEquals(right, null))
+				return false;
 
+			if (object.ReferenceEquals(this, right))
+				return true;
+
+			if (this.GetType() != right.GetType())
+				return false;
+
+			return this.Equals(right as Task);
+		}
+
+		public bool Equals(Task other)
+		{
+			if (this.Completed != other.Completed)
+				return false;
+
+			if (this.CompletedDate.HasValue && !other.CompletedDate.HasValue)
+				return false;
+
+			if (!this.CompletedDate.HasValue && other.CompletedDate.HasValue)
+				return false;
+				
+			if (this.CompletedDate.HasValue && other.CompletedDate.HasValue
+				&& this.CompletedDate.Value.Equals(other.CompletedDate.Value))
+					return false;
+
+			if (this.Priority.CompareTo(other.Priority) != 0)
+				return false;
+
+			if (this.Body.CompareTo(other.Body) != 0)
+				return false;
+
+			if (string.Join(" ", this.Projects).CompareTo(string.Join(" ", other.Projects)) != 0)
+				return false;
+
+			if (string.Join(" ", this.Contexts).CompareTo(string.Join(" ", other.Contexts)) != 0)
+				return false;
+
+			return true;
+		}
+
+		public virtual int CompareTo(object obj)
+		{
+			// check null. This pointer is never null in C# methods.
+			if (object.ReferenceEquals(obj, null))
+				return -1;
+
+			if (object.ReferenceEquals(this, obj))
+				return 0;
+
+			if (this.GetType() != obj.GetType())
+				return -1;
+
+			return CompareTo(obj as Task);			
+		}
+
+		public int CompareTo(Task other)
+		{
 			if (this.Completed != other.Completed)
 				return -1;
 
@@ -197,67 +273,184 @@ namespace ToDoLib
 			// - created date
 			// - projects | contexts
 			// What we have left is the body
+			
+			raw = raw.Replace(Environment.NewLine, ""); //make sure it's just on one line
 
-			var reg = new Regex(CompletedPattern, RegexOptions.IgnoreCase);
-
-			var s = reg.Match(raw).Value.Trim();
-
-			if (string.IsNullOrEmpty(s))
+			Body = raw.ParseRawElement(InitialFieldsRegex, (r) =>
 			{
-				Completed = false;
-				CompletedDate = null;
-			}
-			else
+				var result = InitialFieldsRegex.Match(r);
+				var date1Str = result.Groups["date1"].Value.Trim();
+				var date2Str = result.Groups["date2"].Value.Trim();
+				
+				if (string.IsNullOrEmpty(result.Groups["completed"].Value.Trim()))
+				{
+					Completed = false;
+					CompletedDate = null;
+				}
+				else
+				{
+					Completed = true;
+					// If the task is completed, completion date must be date1
+					if (date1Str.Length > 1)
+					{
+						CompletedDate = DateTime.Parse(date1Str);
+					}
+				}
+				
+				Priority = PriorityRegex.Match(r).Groups["priority"].Value.Trim();
+				// If the task is not completed, created date is date1, otherwise date2.
+				if (Completed && date2Str.Length > 0)
+				{
+					CreationDate = DateTime.Parse(date2Str);
+				}
+				else if (!Completed && date1Str.Length > 0)
+				{
+					CreationDate = DateTime.Parse(date1Str);
+				}
+				
+			}).ParseRawElement(DueRelativeRegex, (r) =>
 			{
-				Completed = true;
-				// TODO Handle error conditions.
-				if (s.Length > 1)
-					CompletedDate = DateTime.Parse(s.Substring(2));
-			}
-			raw = reg.Replace(raw, "");
-
-
-			reg = new Regex(priorityPattern, RegexOptions.IgnoreCase);
-			Priority = reg.Match(raw).Groups["priority"].Value.Trim();
-			raw = reg.Replace(raw, "");
-
-			reg = new Regex(dueDatePattern);
-			DueDate = reg.Match(raw).Groups["date"].Value.Trim();
-			raw = reg.Replace(raw, "");
-
-			reg = new Regex(createdDatePattern);
-			CreationDate = reg.Match(raw).Groups["date"].Value.Trim();
-			raw = reg.Replace(raw, "");
-
-			Projects = new List<string>();
-			reg = new Regex(projectPattern);
-			var projects = reg.Matches(raw);
-
-			foreach (Match project in projects)
+				var result = DueRelativeRegex.Match(r).Groups["dateRelative"].Value.Trim();
+				var relativeDueDate = ParseRelativeDate(result);
+				if (relativeDueDate.HasValue)
+				{
+					DueDate = relativeDueDate;
+				}
+			}).ParseRawElement(DueDateRegex, (r) =>
 			{
-				var p = project.Groups["proj"].Value.Trim();
-				Projects.Add(p);
-			}
-
-			raw = reg.Replace(raw, "");
-
-
-			Contexts = new List<string>();
-			reg = new Regex(contextPattern);
-			var contexts = reg.Matches(raw);
-
-			foreach (Match context in contexts)
+				var match = DueDateRegex.Match(r).Groups["date"].Value.Trim();
+				if (!match.IsNullOrEmpty())
+				{
+					DueDate = DateTime.Parse(match);
+				}
+			}).ParseRawElement(ThresholdRelativeRegex, (r) =>
 			{
-				var c = context.Groups["context"].Value.Trim();
-				Contexts.Add(c);
-			}
+				var result = ThresholdRelativeRegex.Match(r).Groups["dateRelative"].Value.Trim();
+				var thresholdDate = ParseRelativeDate(result);
+				if (thresholdDate.HasValue)
+				{
+					ThresholdDate = thresholdDate;
+				}
+			}).ParseRawElement(ThresholdDateRegex, (r) =>
+			{
+				var match = ThresholdDateRegex.Match(r).Groups["date"].Value.Trim();
+				if (!match.IsNullOrEmpty())
+				{
+					ThresholdDate = DateTime.Parse(match);
+				}
+			}).ParseRawElement(ProjectRegex, (r) =>
+			{
+				Projects = new List<string>();
+				var projects = ProjectRegex.Matches(r);
 
-			raw = reg.Replace(raw, "");
+				foreach (Match project in projects)
+				{
+					var p = project.Groups["proj"].Value.Trim();
+					Projects.Add(p);
+				}
+			}).ParseRawElement(ContextRegex, (r) =>
+			{
+				Contexts = new List<string>();
+				var contexts = ContextRegex.Matches(r);
 
-
-			Body = raw.Trim();
+				foreach (Match context in contexts)
+				{
+					var c = context.Groups["context"].Value.Trim();
+					Contexts.Add(c);
+				}
+			}).Trim();
+			
+			// Body = raw.ParseRawElement(CompletedRegex, (r) =>
+			// {
+			// 	var s = CompletedRegex.Match(r).Value.Trim();
+			// 	if (string.IsNullOrEmpty(s))
+			// 	{
+			// 		Completed = false;
+			// 		CompletedDate = null;
+			// 	}
+			// 	else
+			// 	{
+			// 		Completed = true;
+			// 		// TODO Handle error conditions.
+			// 		if (s.Length > 1)
+			// 			CompletedDate = DateTime.Parse(s.Substring(2));
+			// 	}
+			// }).ParseRawElement(PriorityRegex, (r) =>
+			// {
+			// 	Priority = PriorityRegex.Match(r).Groups["priority"].Value.Trim();
+			// }).ParseRawElement(DueDateRegex, (r) =>
+			// {
+			// 	DueDate = DueDateRegex.Match(r).Groups["date"].Value.Trim();
+			// }).ParseRawElement(CreatedDateRegex, (r) =>
+			// {
+			// 	CreationDate = CreatedDateRegex.Match(r).Groups["date"].Value.Trim();
+			// }).ParseRawElement(ProjectRegex, (r) =>
+			// {
+			// 	Projects = new List<string>();
+			// 	var projects = ProjectRegex.Matches(r);
+			//
+			// 	foreach (Match project in projects)
+			// 	{
+			// 		var p = project.Groups["proj"].Value.Trim();
+			// 		Projects.Add(p);
+			// 	}
+			// }).ParseRawElement(ContextRegex, (r) =>
+			// {
+			// 	Contexts = new List<string>();
+			// 	var contexts = ContextRegex.Matches(r);
+			//
+			// 	foreach (Match context in contexts)
+			// 	{
+			// 		var c = context.Groups["context"].Value.Trim();
+			// 		Contexts.Add(c);
+			// 	}
+			// }).Trim();
 		}
+		
+        private DateTime? ParseRelativeDate(string dateStr)
+        {
+	        //Replace relative days with hard date
+            //Supports english: 'today', 'tomorrow', and full weekdays ('monday', 'tuesday', etc)
+            //If today is the specified weekday, due date will be in one week
+            //TODO other languages
+            var match = RelativeDatePatternRegex.Match(dateStr);
+            var dateRelative = match.Groups["dateRelative"].Value.Trim();
 
+            if (dateRelative.IsNullOrEmpty()) return null;
+            
+            var isValid = false;
+            var date = DateTime.Now;
+            dateRelative = dateRelative.ToLower();
+            if (dateRelative == "today")
+            {
+	            isValid = true;
+            }
+            else if (dateRelative == "tomorrow")
+            {
+	            date = date.AddDays(1);
+	            isValid = true;
+            }
+            else if (match.Groups["weekday"].Success)
+            {
+	            var count = 0;
+	            var lookingForShortDay = dateRelative.Substring(0, 3);
+
+	            //if day of week, add days to today until weekday matches input
+	            //if today is the specified weekday, due date will be in one week
+	            do
+	            {
+		            count++;
+		            date = date.AddDays(1);
+		            isValid = string.Equals(date.ToString("ddd", new CultureInfo("en-US")),
+			            lookingForShortDay,
+			            StringComparison.CurrentCultureIgnoreCase);
+	            } while (!isValid && (count < 7));
+	            // The count check is to prevent an endless loop in case of other culture.
+            }
+
+            return isValid ? date : null;
+        }
+        
 		// NB, you need asciiShift +1 to go from A to B, even though that's a 'decrease' in priority
 		private void ChangePriority(int asciiShift)
 		{
@@ -269,9 +462,9 @@ namespace ToDoLib
 			{
 				var current = Priority[1];
 
-				var newPriority = (Char)((int)(current) + asciiShift);
+				var newPriority = (char)((int)(current) + asciiShift);
 
-				if (Char.IsLetter(newPriority))
+				if (char.IsLetter(newPriority))
 				{
 					SetPriority(newPriority);
 				}

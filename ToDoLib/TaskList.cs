@@ -19,41 +19,41 @@ namespace ToDoLib
         // NB, this is not the place for higher-level functions like searching, task manipulation etc. It's simply 
         // for CRUDing the todo.txt file. 
         
-        private List<Task> _tasks;
-        private readonly string _filePath;
     	private int _nextId = 0;
 
-        public DateTime LastModifiedDate => File.GetLastAccessTime(_filePath);
+        protected string FilePath;
 
-        public DateTime LastTaskListLoadDate { get; private set; }
+        public DateTime LastModifiedDate => File.GetLastAccessTime(FilePath);
+
+        public DateTime LastTaskListLoadDate { get; protected set; }
         
-        public List<Task> Tasks { get { return _tasks; } }
+        public List<Task> Tasks { get; protected set; }
 
     	public List<string> Priorities
     	{
-			get { return _tasks.OrderBy(t => t.Priority).Select(t => t.Priority).Distinct().ToList(); }
+			get { return this.Tasks.OrderBy(t => t.Priority).Select(t => t.Priority).Distinct().ToList(); }
     	}
 
 		public List<string> Contexts
 		{
-			get { return _tasks.SelectMany(t => t.Contexts).Distinct().ToList(); }
+			get { return this.Tasks.SelectMany(t => t.Contexts).Distinct().ToList(); }
 		}
 
  		public List<string> Projects
     	{
-			get { return _tasks.SelectMany(t => t.Projects).Distinct().ToList(); }
+			get { return this.Tasks.SelectMany(t => t.Projects).Distinct().ToList(); }
 		}
 
         
         public TaskList(string filePath)
         {
-            _filePath = filePath;
+            FilePath = filePath;
             ReloadTasks();
         }
 
-        public void ReloadTasks()
+        public virtual void ReloadTasks()
         {
-            Log.Debug("Loading tasks from {0}", _filePath);
+            Log.Debug("Loading tasks from {0}", FilePath);
 
 			/*
 			 * Account for changes that could have occurred in the file since 
@@ -68,70 +68,70 @@ namespace ToDoLib
 			 * Task identifier strategy:
 			 * For each run of the client console (no exit), a task will
 			 * maintain its ID.
-			 *   1. If TaskList._tasks is empty, create new IDs for each
+			 *   1. If Tasks is empty, create new IDs for each
 			 *      task. ID = line number.
-			 *   2. If TaskList._tasks is not empty:
-			 *      a. If Add (line count > _tasks.Count), maintain all IDs,
+			 *   2. If Tasks is not empty:
+			 *      a. If Add (line count > Tasks.Count), maintain all IDs,
 			 *         create new ID for new task.
-			 *      b. If Update (line count == _tasks.Count), maintain all IDs.
-			 *      c. If Delete (line count < _tasks.Count), compare each 
+			 *      b. If Update (line count == Tasks.Count), maintain all IDs.
+			 *      c. If Delete (line count < Tasks.Count), compare each 
 			 *         task, keep ID for all that are equal (which 
 			 *         should be all based on file load model).
 			 */
 
 			try
             {
-				var lines = File.ReadAllLines(_filePath);
-				if (_tasks != null)
+				var lines = File.ReadAllLines(FilePath);
+				if (this.Tasks != null)
 				{
 					var fileTasks = lines.Select(t => new Task(t)).ToList();
 
 					// A real reload.
-					if (fileTasks.Count == _tasks.Count)
+					if (fileTasks.Count == this.Tasks.Count)
 					{
 						// Either the list and file are in sync or there was a
 						// task update. Update all tasks but don't change the IDs.
 						for (int i = 0; i < fileTasks.Count; i++)
 						{
-							if (fileTasks[i].CompareTo(_tasks[i]) != 0)
+							if (fileTasks[i].CompareTo(this.Tasks[i]) != 0)
 							{
 								Log.Debug("Found updated task {0}: {1}", i.ToString(), lines[i]);
-								_tasks[i].Update(lines[i]);
+								this.Tasks[i].Update(lines[i]);
 							}
 						}
 					}
-					else if (lines.Length > _tasks.Count)
+					else if (lines.Length > this.Tasks.Count)
 					{
 						// Must have been an add.
-						for (int i = _tasks.Count; i < lines.Length; i++)
+						for (int i = this.Tasks.Count; i < lines.Length; i++)
 						{
 							Log.Debug("Adding new task '{0}'", lines[i]);
-							_tasks.Add(new Task(GetNextId(), lines[i]));
+							this.Tasks.Add(new Task(GetNextId(), lines[i]));
 						}
 					}
 					else
 					{
-						var toRemoves = fileTasks.Except(_tasks.Select(t => t));
-							//lines.Except(_tasks.Select(t => t.Raw));
+						var toRemoves = fileTasks.Except(this.Tasks.Select(t => t));
+							//lines.Except(this.Tasks.Select(t => t.Raw));
 
 						foreach (var toRemove in toRemoves)
 						{
-							//var r = _tasks.FirstOrDefault(t => t.Raw == raw);
+							//var r = this.Tasks.FirstOrDefault(t => t.Raw == raw);
 							Log.Debug("Removing task {0}: {1}", toRemove.Id.ToString(), toRemove.Body);
-							_tasks.Remove(toRemove);
+							this.Tasks.Remove(toRemove);
 						}
 					}
-					Log.Debug("Finished reloading tasks from {0}", _filePath);
+					Log.Debug("Finished reloading tasks from {0}", FilePath);
 				}
 				else
             	{
 					// First load.
-					_tasks = new List<Task>();
+					this.Tasks = new List<Task>();
 					for (int i = 0; i < lines.Length; i++)
 					{
-						_tasks.Add(new Task(GetNextId(), lines[i]));
+						this.Tasks.Add(new Task(GetNextId(), lines[i]));
 					}
-					Log.Debug("Finished loading tasks from {0}", _filePath);
+					Log.Debug("Finished loading tasks from {0}", FilePath);
 				}
 				this.LastTaskListLoadDate = DateTime.Now;
             }
@@ -156,11 +156,11 @@ namespace ToDoLib
 
                 Log.Debug("Adding task '{0}'", output);
 
-                var text = File.ReadAllText(_filePath);
+                var text = File.ReadAllText(FilePath);
                 if (text.Length > 0 && !text.EndsWith(Environment.NewLine))
                     output = Environment.NewLine + output;
 
-                File.AppendAllLines(_filePath, new string[] { output });
+                File.AppendAllLines(FilePath, new string[] { output });
 
 				Console.WriteLine("Task '{0}' added", output);
                 Log.Debug("Task '{0}' added", output);
@@ -189,8 +189,8 @@ namespace ToDoLib
 
                 ReloadTasks(); // make sure we're working on the latest file
                 
-                if (_tasks.Remove(_tasks.First(t => t == task)))
-                    File.WriteAllLines(_filePath, _tasks.Select(t => t.ToString()));
+                if (this.Tasks.Remove(this.Tasks.First(t => t.Equals(task))))
+                    File.WriteAllLines(FilePath, this.Tasks.Select(t => t.ToString()));
                 
                 Log.Debug("Task {0} deleted", task.Id.ToString());
 				Console.WriteLine("Task {0} deleted", task.Id.ToString());
@@ -215,7 +215,7 @@ namespace ToDoLib
         {
             try
             {
-                File.WriteAllLines(_filePath, _tasks.Select(t => t.ToString()));
+                File.WriteAllLines(FilePath, this.Tasks.Select(t => t.ToString()));
                 ReloadTasks();
             }
             catch (IOException ex)
@@ -233,7 +233,7 @@ namespace ToDoLib
 
         public IEnumerable<Task> Sort(SortType sort, bool FilterCaseSensitive, string Filter)
         {
-                return SortList(sort, FilterList(_tasks, FilterCaseSensitive, Filter));
+                return SortList(sort, FilterList(this.Tasks, FilterCaseSensitive, Filter));
         }
 
         public static List<Task> FilterList(List<Task> tasks, bool FilterCaseSensitive, string Filter) 
@@ -289,7 +289,7 @@ namespace ToDoLib
                 case SortType.Alphabetical:
                     return tasks.OrderBy(t => (t.Completed ? "z" : "a") + t.ToString());
                 case SortType.DueDate:
-                    return tasks.OrderBy(t => (t.Completed ? "z" : "a") + (string.IsNullOrEmpty(t.DueDate) ? "9999-99-99" : t.DueDate));
+                    return tasks.OrderBy(t => (t.Completed ? "z" : "a") + (t.DueDate.HasValue ? t.DueDate : "9999-99-99"));
                 case SortType.Priority:
                     return tasks.OrderBy(t => (t.Completed ? "z" : "a") + (string.IsNullOrEmpty(t.Priority) ? "(z)" : t.Priority));
                 case SortType.Project:
@@ -308,7 +308,7 @@ namespace ToDoLib
             }
         }
 
-		private int GetNextId()
+		protected int GetNextId()
 		{
 			return _nextId++;
 		}

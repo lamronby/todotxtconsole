@@ -1,5 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using System.IO;
+using System.Collections.Generic;
 using YamlDotNet.RepresentationModel;
 
 namespace ClientConsole
@@ -8,6 +9,7 @@ namespace ClientConsole
     {
         public static string FILE_PATH_KEY = "file_path";
         public static string ARCHIVE_FILE_PATH_KEY = "archive_file_path";
+        public static string RECUR_FILE_PATH_KEY = "recur_file_path";
         public static string SORT_TYPE_KEY = "sort_type";
         public static string GROUP_BY_TYPE_KEY = "group_by_type";
         public static string FILTER_TEXT_KEY = "filter_text";
@@ -17,7 +19,7 @@ namespace ClientConsole
         public ConfigService()
         {
             _todoConfig = new Dictionary<string, string>();
-            var filePath = @"C:\src\thirdparty\Todotxtconsole\ClientConsole\ClientConsoleConfig.yaml";
+            var filePath = $"{Path.GetDirectoryName(Environment.ProcessPath)}/ClientConsoleConfig.yaml";
 
             this.IngestConfigFile(filePath);
         }

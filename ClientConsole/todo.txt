@@ -7,3 +7,4 @@ Utility to pull ToDos from source code to a todo.txt file. Include source file a
 Incorporate Spec# for fun. http://research.microsoft.com/en-us/projects/specsharp  @enhancement
 Modify Command interface to be static? @dev
 Refactor to be a .NET core project @dev 
+Integrate log4net or another OSS logging framework @dev

@@ -15,6 +15,8 @@ Task class
 * Created separate ParseRaw method and moved parse logic out of constructor
 	* Parse logic does not handle newer relative dates
 * Added a Clone method, for facilitating task archive
+* Converted all regex patterns constants to compiled static reeadonly Regex objects.
+* Refactored ParseRaw to be more functional - allows for the entire parsing to be done in a single command.
 
 TaskList class
 

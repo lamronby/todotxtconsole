@@ -262,6 +262,8 @@ namespace ClientConsole
                 Console.WriteLine(e);
             }
 
+            Log.LogLevel = (LogLevel)Enum.Parse(typeof(LogLevel), configService.GetValue("debug_level"));
+
             var filePath = configService.GetValue( "file_path" );
             if ( string.IsNullOrEmpty( filePath ) )
             {
@@ -289,10 +291,19 @@ namespace ClientConsole
             }
             var taskList = LoadTasks(filePath);
 
+            var recurFilePath = configService.GetValue("recur_file_path");
+            if (!File.Exists(recurFilePath))
+            {
+                throw new ArgumentException($"Recur file path was specified but does not exist: {recurFilePath}");
+            }
+            var recurTaskList = LoadRecurringTasks(recurFilePath);
+
             var commands = LoadCommands();
 
-            IToDoController controller = new ToDoController(configService, taskList, archiveFilePath, commands, new TaskListView());
+            IToDoController controller = new ToDoController(configService, taskList, archiveFilePath, recurTaskList, commands, new TaskListView());
 
+            Console.WriteLine($"Logfile: {Log.LogFile}");
+            
             controller.Run();
         }
 
@@ -303,6 +314,23 @@ namespace ClientConsole
             try
             {
                 taskList = new TaskList(filePath);
+            }
+            catch (Exception ex)
+            {
+                var msg = "An error occurred while opening " + filePath;
+                Log.Error(msg, ex);
+            }
+
+            return taskList;
+        }
+
+        private static RecurTaskList LoadRecurringTasks(string filePath)
+        {
+            RecurTaskList taskList = null;
+
+            try
+            {
+                taskList = new RecurTaskList(filePath);
             }
             catch (Exception ex)
             {

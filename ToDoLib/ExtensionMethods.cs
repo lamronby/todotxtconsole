@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace ToDoLib
 {
@@ -48,6 +49,12 @@ namespace ToDoLib
 				return false;
 
 			return comparisonDate.Date < date.Date;
+		}
+
+		public static string ParseRawElement(this string raw, Regex elementRegex, Action<string> parser)
+		{
+			parser(raw);
+			return elementRegex.Replace(raw, "");
 		}
     }
 }

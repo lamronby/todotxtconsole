@@ -185,7 +185,7 @@ namespace ClientConsole.Views
                 case SortType.Alphabetical:
                     return tasks.OrderBy(t => (t.Completed ? "z" : "a") + t.Body);
                 case SortType.DueDate:
-                    return tasks.OrderBy(t => (t.Completed ? "z" : "a") + (string.IsNullOrEmpty(t.DueDate) ? "zzz" : t.DueDate));
+                    return tasks.OrderBy(t => (t.Completed ? "z" : "a") + (t.DueDate.HasValue ? t.DueDate : "zzz"));
                 case SortType.Priority:
                     return tasks.OrderBy(t => (t.Completed ? "z" : "a") + (string.IsNullOrEmpty(t.Priority) ? "zzz" : t.Priority));
                 case SortType.Project:

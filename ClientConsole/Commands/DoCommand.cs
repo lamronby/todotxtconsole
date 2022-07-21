@@ -37,9 +37,6 @@ namespace ClientConsole.Commands
 				// TODO Handle not found.
 				if (task != null)
 				{
-					// TODO Add clone method to Task?
-					// TODO Add date completed and 'x' to indicate complete.
-
 					var archTask = task.Clone();
 					archTask.Completed = true;
 					archTask.CompletedDate = DateTime.Now;

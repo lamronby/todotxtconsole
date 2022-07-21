@@ -20,6 +20,8 @@ namespace ClientConsole
 
         private CommandContext _context;
         private string _archiveFilePath;
+        // the list of recurring tasks is not exposed to commands, so it's a member here rather than in CommandContext
+        private RecurTaskList _recurTaskList;
 
         private readonly IConfigService _configService;
         private ITaskListView _taskListView;
@@ -28,6 +30,7 @@ namespace ClientConsole
             IConfigService configService,
             TaskList taskList,
             string archiveFilePath,
+            RecurTaskList recurTaskList,
             IDictionary<string, ITodoCommand> commands,
             ITaskListView taskListView)
         {
@@ -35,6 +38,7 @@ namespace ClientConsole
             _commands = commands;
             _taskListView = taskListView;
             _archiveFilePath = archiveFilePath;
+            _recurTaskList = recurTaskList;
 
             _context = new CommandContext()
             {
@@ -102,6 +106,7 @@ namespace ClientConsole
                 var cmd = _commands[command.ToLower()];
                 cmd.Execute(raw, _context);
                 ProcessArchiveTasks();
+                CheckRecurringTasks();
                 success = true;
             }
             else
@@ -140,6 +145,16 @@ namespace ClientConsole
             {
                 Log.Error(ex.ToString());
                 throw;
+            }
+        }
+
+        private void CheckRecurringTasks()
+        {
+            if (_recurTaskList == null) return;
+
+            foreach (var task in _recurTaskList.GetGeneratedRecurringTasks(_context.TaskList))
+            {
+                _context.TaskList.Add(task);
             }
         }
     }
