@@ -54,98 +54,31 @@ namespace ToDoLib
         public virtual void ReloadTasks()
         {
             Log.Debug("Loading tasks from {0}", FilePath);
-
-			/*
-			 * Account for changes that could have occurred in the file since 
-			 * last load.
-			 * 
-			 * Update types:
-			 *   Add - line appended to file
-			 *   Update - line number (ID) is the same, data changed.
-			 *   Delete - line deleted somewhere, 1-n line numbers change,
-			 *            where n = number of lines in new file.
-			 *            
-			 * Task identifier strategy:
-			 * For each run of the client console (no exit), a task will
-			 * maintain its ID.
-			 *   1. If Tasks is empty, create new IDs for each
-			 *      task. ID = line number.
-			 *   2. If Tasks is not empty:
-			 *      a. If Add (line count > Tasks.Count), maintain all IDs,
-			 *         create new ID for new task.
-			 *      b. If Update (line count == Tasks.Count), maintain all IDs.
-			 *      c. If Delete (line count < Tasks.Count), compare each 
-			 *         task, keep ID for all that are equal (which 
-			 *         should be all based on file load model).
-			 */
-
+            
 			try
-            {
+			{
+				this.Tasks = new List<Task>();
 				var lines = File.ReadAllLines(FilePath);
-				if (this.Tasks != null)
+
+				foreach (var t in lines)
 				{
-					var fileTasks = lines.Select(t => new Task(t)).ToList();
-
-					// A real reload.
-					if (fileTasks.Count == this.Tasks.Count)
-					{
-						// Either the list and file are in sync or there was a
-						// task update. Update all tasks but don't change the IDs.
-						for (int i = 0; i < fileTasks.Count; i++)
-						{
-							if (fileTasks[i].CompareTo(this.Tasks[i]) != 0)
-							{
-								Log.Debug("Found updated task {0}: {1}", i.ToString(), lines[i]);
-								this.Tasks[i].Update(lines[i]);
-							}
-						}
-					}
-					else if (lines.Length > this.Tasks.Count)
-					{
-						// Must have been an add.
-						for (int i = this.Tasks.Count; i < lines.Length; i++)
-						{
-							Log.Debug("Adding new task '{0}'", lines[i]);
-							this.Tasks.Add(new Task(GetNextId(), lines[i]));
-						}
-					}
-					else
-					{
-						var toRemoves = fileTasks.Except(this.Tasks.Select(t => t));
-							//lines.Except(this.Tasks.Select(t => t.Raw));
-
-						foreach (var toRemove in toRemoves)
-						{
-							//var r = this.Tasks.FirstOrDefault(t => t.Raw == raw);
-							Log.Debug("Removing task {0}: {1}", toRemove.Id.ToString(), toRemove.Body);
-							this.Tasks.Remove(toRemove);
-						}
-					}
-					Log.Debug("Finished reloading tasks from {0}", FilePath);
+				    this.Tasks.Add(new Task(GetNextId(), t));
 				}
-				else
-            	{
-					// First load.
-					this.Tasks = new List<Task>();
-					for (int i = 0; i < lines.Length; i++)
-					{
-						this.Tasks.Add(new Task(GetNextId(), lines[i]));
-					}
-					Log.Debug("Finished loading tasks from {0}", FilePath);
-				}
-				this.LastTaskListLoadDate = DateTime.Now;
-            }
-            catch (IOException ex)
-            {
-                var msg = "There was a problem trying to read from your todo.txt file";
-                Log.Error(msg, ex);
-                throw new TaskException(msg, ex);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex.ToString());
-                throw;
-            }
+				Log.Debug("Finished loading tasks from {0}", FilePath);
+                this.LastTaskListLoadDate = DateTime.Now;
+
+			}
+			catch (IOException ex)
+			{
+				var msg = "There was a problem trying to read from your todo.txt file";
+				Log.Error(msg, ex);
+				throw new TaskException(msg, ex);
+			}
+			catch (Exception ex)
+			{
+				Log.Error(ex.ToString());
+				throw;
+			}
         }
 
         public void Add(Task task)
