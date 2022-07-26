@@ -20,6 +20,8 @@ namespace ClientConsole
 
         public bool ListAfterCommand { get; set; }
 
+        public bool DisplayBeforeThresholdDate { get; set; }
+
         public Dictionary<string, string> OtherConfig { get; set; }
 
         public int DebugLevel
@@ -32,7 +34,7 @@ namespace ClientConsole
         {
             var otherConfig = this.OtherConfig == null ? "" : string.Join(", ", this.OtherConfig.Select(kv => $"{kv.Key}: {kv.Value}"));
             
-            return $"DebugLevel: {this.DebugLevel}, Filter: {this.Filter}, GroupByType: {this.GroupByType}, ListAfterCommand? {this.ListAfterCommand}, ListOnStart? {this.ListOnStart}, SortType: {this.SortType}. OtherConfig: {otherConfig}";
+            return $"DebugLevel: {this.DebugLevel}, Filter: {this.Filter}, GroupByType: {this.GroupByType}, ListAfterCommand? {this.ListAfterCommand}, ListOnStart? {this.ListOnStart}, SortType: {this.SortType}, DisplayBeforeThresholdDate: {this.DisplayBeforeThresholdDate}. OtherConfig: {otherConfig}";
         }
     }
 }

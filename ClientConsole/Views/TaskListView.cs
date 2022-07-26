@@ -18,20 +18,24 @@ namespace ClientConsole.Views
 
         private static void PrintTasks(TaskList taskList, Regex searchExpr, CommandContext context)
         {
-            var matchList = new List<Task>(taskList.Tasks);
+            var matchList = context.TaskList.Tasks.AsEnumerable<Task>();
 
             if (context.Filter != null)
             {
-                matchList = taskList.Tasks
-                                     .Where(t => context.Filter.Matches(t))
-                                     .ToList();
+                matchList = context.TaskList.Tasks
+                                     .Where(t => context.Filter.Matches(t));
             }
 
             if (searchExpr != null)
             {
                 matchList = matchList
-                    .Where(t => searchExpr.IsMatch(t.Body))
-                    .ToList();
+                    .Where(t => searchExpr.IsMatch(t.Body));
+            }
+
+            if (!context.DisplayBeforeThresholdDate)
+            {
+                var now = DateTime.Now;
+                matchList = matchList.Where(t => !t.ThresholdDate.HasValue || t.ThresholdDate < now);
             }
 
             if (context.GroupByType == GroupByType.Project)

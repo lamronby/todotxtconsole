@@ -24,7 +24,7 @@ namespace ToDoLib
 
         public IList<Task> GetGeneratedRecurringTasks(TaskList activeTaskList)
         {
-            IList<Task> result = null;
+            IList<Task> result = new List<Task>();
             var now = DateTime.Now;
 
             // if a day (or more) has passed since generating recurring tasks, 

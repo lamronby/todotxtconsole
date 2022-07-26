@@ -43,10 +43,11 @@ namespace ClientConsole
             _context = new CommandContext()
             {
                 TaskList =  taskList,
-                DebugLevel = Int32.Parse( configService.GetValue( "debug_level" ) ),
+                DebugLevel = int.Parse( configService.GetValue( "debug_level" ) ),
                 GroupByType = DotNetExtensions.ParseEnum<GroupByType>(configService.GetValue(ConfigService.GROUP_BY_TYPE_KEY), GroupByType.None),
                 SortType = DotNetExtensions.ParseEnum<SortType>(configService.GetValue(ConfigService.SORT_TYPE_KEY), SortType.Project),
                 Filter = new TaskFilter(configService.GetValue(ConfigService.FILTER_TEXT_KEY)),
+                DisplayBeforeThresholdDate = bool.Parse(configService.GetValue(ConfigService.DISPLAY_BEFORE_THRESHOLD_KEY))
             };
 
             Console.WriteLine($"Command context: DebugLevel: {_context.DebugLevel}, GroupByType: {_context.GroupByType.ToString()}, SortType: {_context.SortType.ToString()}, Filter: {_context.Filter}");

@@ -32,20 +32,24 @@ namespace ClientConsole.Commands
 
         private void PrintTasks(Regex searchExpr, CommandContext context)
         {
-            var matchList = new List<Task>( context.TaskList.Tasks );
+            var matchList = context.TaskList.Tasks.AsEnumerable<Task>();
 
             if (context.Filter != null)
             {
                 matchList = context.TaskList.Tasks
-                                     .Where(t => context.Filter.Matches(t))
-                                     .ToList();
+                                     .Where(t => context.Filter.Matches(t));
             }
 
             if (searchExpr != null)
             {
                 matchList = matchList
-                    .Where(t => searchExpr.IsMatch(t.Body))
-                    .ToList();
+                    .Where(t => searchExpr.IsMatch(t.Body));
+            }
+
+            if (!context.DisplayBeforeThresholdDate)
+            {
+                var now = DateTime.Now;
+                matchList = matchList.Where(t => !t.ThresholdDate.HasValue || t.ThresholdDate < now);
             }
 
             if (context.GroupByType == GroupByType.Project)

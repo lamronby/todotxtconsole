@@ -13,6 +13,7 @@ namespace ClientConsole
         public static string SORT_TYPE_KEY = "sort_type";
         public static string GROUP_BY_TYPE_KEY = "group_by_type";
         public static string FILTER_TEXT_KEY = "filter_text";
+        public static string DISPLAY_BEFORE_THRESHOLD_KEY = "display_before_threshold_date";
             
         private Dictionary<string, string> _todoConfig;
 
