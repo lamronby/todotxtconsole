@@ -263,7 +263,6 @@ namespace ToDoLib
 			Priority = priorityString;
 		}
 
-		//TODO priority regex need to only recognize upper case single chars
 		private void ParseRaw(string raw)
 		{
 			// because we are removing matches as we go, the order we process is important. It must be:
