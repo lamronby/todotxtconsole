@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Text.RegularExpressions;
 using ClientConsole.Commands;
 using ClientConsole.Views;
-using CommonExtensions;
+using CommandLine;
 using Mono.Options;
 using ToDoLib;
 
@@ -16,6 +13,11 @@ namespace ClientConsole
 {
     class Program
     {
+        private class Options
+        {
+            [Option('f', "config_file", Required = true, HelpText = "Path to a config file.")]
+            public string ConfigFile { get; set; }
+        }
         #region todo reference
 
         /*
@@ -214,82 +216,72 @@ namespace ClientConsole
 
         /*
           Options:
-            f|TodoFile
-                Specify the todo file.
-            a|ArchiveFile
-                Specify the archive file.
-            s|SortBy
-                Specify a sort. Default is ?, valid values are none, alphabetical,
-                completed, context, duedate, priority, project.
-            g|GroupBy
-                Specify a grouping. Default is none, valid values are none, context,
-                project, or priority.
+            f|ConfigFile
+                Specify the path of the config  file.
         */
         static void Main(string[] args)
         {
-            var configService = new ConfigService();
+            string configFilePath = null;
+            
+            //ParserResult<Options> result = 
+            Parser.Default.ParseArguments<Options>(args)
+                .WithParsed(o =>
+                {
+                    configFilePath = o.ConfigFile;
+                    if (string.IsNullOrEmpty(configFilePath))
+                    {
+                        var baseDir = Assembly.GetExecutingAssembly().Location;
+                        configFilePath = baseDir + "ClientConsoleConfig.yaml";
+                    }
+                })
+                .WithNotParsed(e =>
+                {
+                    foreach (var error in e)
+                    {
+                        if (error.Tag == ErrorType.HelpRequestedError ||
+                            error.Tag == ErrorType.HelpVerbRequestedError ||
+                            error.Tag == ErrorType.VersionRequestedError)
+                            continue;
 
-            var showHelp = false;
-            var p = new OptionSet() {
-				{ "f|TodoFile=", "The todo file", f => configService.SetValue(ConfigService.FILE_PATH_KEY, f)},
-				{ "a|ArchiveFile=", "The archive file", a => configService.SetValue(ConfigService.ARCHIVE_FILE_PATH_KEY, a)},
-				{ "s|SortBy=", "Specify a sort.", s => configService.SetValue(ConfigService.SORT_TYPE_KEY, DotNetExtensions.ParseEnum<SortType>(s, SortType.None).ToString())},
-				{ "g|GroupBy=", "Specify a grouping.", g => configService.SetValue(ConfigService.GROUP_BY_TYPE_KEY, DotNetExtensions.ParseEnum<GroupByType>(g, GroupByType.Project).ToString())},
-				{ "h|help",  "Display help", v => showHelp = v != null },
-				};
+                        Console.Error.WriteLine(error.ToString());
+                    }
+                    Environment.Exit(1);
+                });
+            
 
-            List<string> extra;
-            try
+            var configService = new ConfigService(configFilePath);
+
+            if ( string.IsNullOrEmpty( configService.ToDoConfig.FilePath ) )
             {
-                extra = p.Parse(args);
-            }
-            catch (OptionException e)
-            {
-                Console.Write("ToDoConsole: ");
-                Console.WriteLine(e.Message);
-                Console.WriteLine("Try `ToDoConsole help' for help.");
+                Console.WriteLine("Cannot continue, file path  not configured.");
                 return;
             }
 
-            if (showHelp)
-            {
-                ShowHelp(p);
-                return;
-            }
-
-            foreach (var e in extra)
-            {
-                Console.WriteLine(e);
-            }
-
-            Log.LogLevel = (LogLevel)Enum.Parse(typeof(LogLevel), configService.GetValue("debug_level"));
-
-            var filePath = configService.GetValue( "file_path" );
-            if ( string.IsNullOrEmpty( filePath ) )
-            {
-                Console.WriteLine("Cannot continue, FilePath not configured.");
-                return;
-            }
-
-            var archiveFilePath = configService.GetValue( "archive_file_path" );
-            if ( string.IsNullOrEmpty( archiveFilePath ) )
+            if ( string.IsNullOrEmpty( configService.ToDoConfig.ArchiveFilePath ) )
             {
                 // Don't use an archive file, just archive within the main file 
-                Console.WriteLine($"Archive file not specified, will archive into {filePath}");
-                archiveFilePath = filePath;
+                Console.WriteLine($"Archive file not specified, will archive into {configService.ToDoConfig.FilePath}");
+                configService.SetConfig(
+                    filePath: configService.ToDoConfig.FilePath,
+                    archiveFilePath: configService.ToDoConfig.FilePath,
+                    sortType: configService.ToDoConfig.SortType,
+                    groupByType: configService.ToDoConfig.GroupByType,
+                    filterText: configService.ToDoConfig.FilterText,
+                    listOnStart: configService.ToDoConfig.ListOnStart,
+                    listAfterCommand: configService.ToDoConfig.ListAfterCommand);
             }
 
             // TODO Create file if it doesn't exist.
-            if (!File.Exists(filePath))
+            if (!File.Exists(configService.ToDoConfig.FilePath))
             {
-                throw new ArgumentException($"Todo file path does not exist: {filePath}");
+                throw new ArgumentException($"Todo file path does not exist: {configService.ToDoConfig.FilePath}");
             }
             
-            if (!File.Exists(archiveFilePath))
+            if (!File.Exists(configService.ToDoConfig.ArchiveFilePath))
             {
-                throw new ArgumentException($"Archive file path does not exist: {archiveFilePath}");
+                throw new ArgumentException($"Archive file path does not exist: {configService.ToDoConfig.ArchiveFilePath}");
             }
-            var taskList = LoadTasks(filePath);
+            var taskList = LoadTasks(configService.ToDoConfig.FilePath);
 
             var recurFilePath = configService.GetValue("recur_file_path");
             if (!File.Exists(recurFilePath))
@@ -300,7 +292,7 @@ namespace ClientConsole
 
             var commands = LoadCommands();
 
-            IToDoController controller = new ToDoController(configService, taskList, archiveFilePath, recurTaskList, commands, new TaskListView());
+            IToDoController controller = new ToDoController(configService, taskList, commands, new TaskListView());
 
             Console.WriteLine($"Logfile: {Log.LogFile}");
             
