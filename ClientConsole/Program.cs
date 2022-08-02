@@ -283,7 +283,7 @@ namespace ClientConsole
             }
             var taskList = LoadTasks(configService.ToDoConfig.FilePath);
 
-            var recurFilePath = configService.GetValue("recur_file_path");
+            var recurFilePath = configService.ToDoConfig.RecurFilePath;
             if (!File.Exists(recurFilePath))
             {
                 throw new ArgumentException($"Recur file path was specified but does not exist: {recurFilePath}");
@@ -292,7 +292,7 @@ namespace ClientConsole
 
             var commands = LoadCommands();
 
-            IToDoController controller = new ToDoController(configService, taskList, commands, new TaskListView());
+            IToDoController controller = new ToDoController(configService, taskList, recurTaskList, commands, new TaskListView());
 
             Console.WriteLine($"Logfile: {Log.LogFile}");
             

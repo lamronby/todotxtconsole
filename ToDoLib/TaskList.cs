@@ -60,7 +60,7 @@ namespace ToDoLib
 				this.Tasks = new List<Task>();
 				var lines = File.ReadAllLines(FilePath);
 
-				foreach (var t in lines)
+				foreach (var t in lines.Where(l => l[0] != '#'))
 				{
 				    this.Tasks.Add(new Task(GetNextId(), t));
 				}
