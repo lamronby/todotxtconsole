@@ -43,11 +43,10 @@ namespace ClientConsole
 
         private void IngestConfigFile(string filePath)
         {
-            using var reader = new StringReader(File.ReadAllText(filePath));
             var deserializer = new DeserializerBuilder()
                 .WithNamingConvention(UnderscoredNamingConvention.Instance)
                 .Build();
-            this.ToDoConfig = deserializer.Deserialize<ToDoConfig>(reader);
+            this.ToDoConfig = deserializer.Deserialize<ToDoConfig>(File.ReadAllText(filePath));
         }
 
         private void PersistConfig()

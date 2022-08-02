@@ -131,10 +131,10 @@ namespace ToDoLib
                 // first load
                 this.Tasks = new List<Task>();
                 this.RecurringTasks = new List<RecurringTask>();
-                for (int i = 0; i < lines.Length; i++)
+                foreach (var t in lines.Where(l => l[0] != '#'))
                 {
                     var id = GetNextId();
-                    var task = new RecurringTask(id, lines[i]);
+                    var task = new RecurringTask(id, t);
                     this.Tasks.Add(task);
                     this.RecurringTasks.Add(task);
                 }
