@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using ClientConsole.Commands;
 using ClientConsole.Views;
 
 namespace ClientConsole
@@ -7,11 +10,14 @@ namespace ClientConsole
     public class ConfigController
     {
         private readonly ConfigService _configService;
+        private readonly IDictionary<string, ITodoCommand> _commands = new Dictionary<string, ITodoCommand>();
 
         public ConfigController(
-            ConfigService configService)
+            ConfigService configService,
+            IDictionary<string, ITodoCommand> commands)
         {
             _configService = configService;
+            _commands = commands;
             
             // Look for required values that either don't exist in config or aren't set
             
@@ -59,16 +65,16 @@ namespace ClientConsole
                         Console.WriteLine( $"{cmd.Key,-8}: {cmd.Value.Description}" );
                     }
                 }
-                else
-                {
-                    var matches = _inputPattern.Match(line);
-                    var cmd = matches.Groups["command"].Value.Trim();
-                    var raw = matches.Groups["raw"].Value.Trim();
-                    ExecuteCommand(cmd, raw);
-                }
+                // else
+                // {
+                //     var matches = _inputPattern.Match(line);
+                //     var cmd = matches.Groups["command"].Value.Trim();
+                //     var raw = matches.Groups["raw"].Value.Trim();
+                //     ExecuteCommand(cmd, raw);
+                // }
                 
-                if (_context.ListAfterCommand)
-			        TaskListView.Display(_context.TaskList, _context, "");
+           //      if (_configService.ToDoConfig.ListAfterCommand)
+			        // TaskListView.Display(_context.TaskList, _context, "");
 			}
         }
         

@@ -51,15 +51,15 @@ namespace ToDoLib
 		private static readonly Regex ProjectRegex = new Regex(@"(?<proj>\+[^\s]+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 		private static readonly Regex ContextRegex = new Regex(@"(?<context>\@[^\s]+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-		public int Id { get; internal set; }
-		public List<string> Projects { get; set; }
-		public List<string> Contexts { get; set; }
-		public DateTime? DueDate { get; set; }
+		public int Id { get; internal init; }
+		public List<string> Projects { get; private set; }
+		public List<string> Contexts { get; private set; }
+		public DateTime? DueDate { get; private set; }
 		public DateTime? CompletedDate { get; set; }
-		public DateTime? CreationDate { get; set; }
-		public DateTime? ThresholdDate { get; set; }
-		public string Priority { get; set; }
-		public string Body { get; set; }
+		public DateTime? CreationDate { get; private set; }
+		public DateTime? ThresholdDate { get; private set; }
+		public string Priority { get; private set; }
+		public string Body { get; private set; }
 
 		private bool _completed;
 
@@ -107,8 +107,12 @@ namespace ToDoLib
 
 		public Task(string raw)
 		{
-			ParseRaw(raw);
+			this.Contexts = new List<string>();
+			this.Projects = new List<string>();
 			this.Id = -1;
+			if (raw == null) return;
+			
+			ParseRaw(raw);
 		}
 
 		public Task(int id, string raw)
@@ -136,11 +140,12 @@ namespace ToDoLib
 		{
 			// Format:
 			// <completed_flag> <completed_date> <creation_date> <priority> <body> <due_date> <projects> <contexts>
-			return string.Format("{0}{1}{2}{3}{4}{5}{6}",
+			return string.Format("{0}{1}{2}{3}{4}{5}{6}{7}",
 				Completed ? "x " + CompletedDate.Value.ToString("yyyy-MM-dd ") : "",
 				CreationDate.HasValue ? CreationDate.Value.ToString("yyyy-MM-dd ") : "",
 				string.IsNullOrEmpty(Priority) ? "" : Priority + " ",
 				Body,
+				ThresholdDate.HasValue ? ThresholdDate.Value.ToString(" due:yyyy-MM-dd ") : "",
 				DueDate.HasValue ? DueDate.Value.ToString(" due:yyyy-MM-dd ") : "",
 				Projects == null ? "" : " " + string.Join(" ", Projects),
 				Contexts == null ? "" : " " + string.Join(" ", Contexts));
@@ -339,7 +344,6 @@ namespace ToDoLib
 				}
 			}).ParseRawElement(ProjectRegex, (r) =>
 			{
-				Projects = new List<string>();
 				var projects = ProjectRegex.Matches(r);
 
 				foreach (Match project in projects)
@@ -349,7 +353,6 @@ namespace ToDoLib
 				}
 			}).ParseRawElement(ContextRegex, (r) =>
 			{
-				Contexts = new List<string>();
 				var contexts = ContextRegex.Matches(r);
 
 				foreach (Match context in contexts)
