@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using ToDoLib;
+using Serilog;
 
 namespace ClientConsole.Commands
 {
@@ -183,7 +184,7 @@ namespace ClientConsole.Commands
 
         private static IEnumerable<Task> Sort(IEnumerable<Task> tasks, SortType sortType)
         {
-            Log.Debug("Sorting {0} tasks by {1}", tasks.Count().ToString(), sortType.ToString());
+            Log.Debug("Sorting {0} tasks by {1}", tasks.Count(), sortType.ToString());
 
             switch (sortType)
             {

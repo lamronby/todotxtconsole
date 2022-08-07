@@ -7,6 +7,8 @@ using ClientConsole.Commands;
 using ClientConsole.Views;
 using CommandLine;
 using Mono.Options;
+using Serilog;
+using Serilog.Events;
 using ToDoLib;
 
 namespace ClientConsole
@@ -249,11 +251,24 @@ namespace ClientConsole
                 });
             
 
+            var levelSwitch = new Serilog.Core.LoggingLevelSwitch(LogEventLevel.Information);
+            using var log = new LoggerConfiguration()
+                .MinimumLevel.ControlledBy(levelSwitch)
+                .WriteTo.Console()
+                .CreateLogger();
+              
+            Log.Logger = log;
+
             var configService = new ConfigService(configFilePath);
+
+            if (configService.ToDoConfig.LogLevel >= 0 && configService.ToDoConfig.LogLevel <= 5)
+            {
+              levelSwitch.MinimumLevel = (LogEventLevel)configService.ToDoConfig.LogLevel;
+            }
 
             if ( string.IsNullOrEmpty( configService.ToDoConfig.FilePath ) )
             {
-                Console.WriteLine("Cannot continue, file path  not configured.");
+                Console.WriteLine("Cannot continue, file path not configured.");
                 return;
             }
 
@@ -294,8 +309,6 @@ namespace ClientConsole
 
             IToDoController controller = new ToDoController(configService, taskList, recurTaskList, commands, new TaskListView());
 
-            Console.WriteLine($"Logfile: {Log.LogFile}");
-            
             controller.Run();
         }
 

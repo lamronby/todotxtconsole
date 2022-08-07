@@ -12,7 +12,7 @@ namespace ToDoLib
         Debug
     }
 
-    public static class Log
+    public static class OldLog
     {
         public static LogLevel LogLevel { get; set; }
 
