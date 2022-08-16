@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using System;
 using System.IO;
+using Serilog;
 using ToDoLib;
 
 namespace ToDoTests
@@ -13,7 +14,9 @@ namespace ToDoTests
 		[OneTimeSetUp]
 		public void Setup()
 		{
-            Log.LogLevel = LogLevel.Debug;
+            Log.Logger = new LoggerConfiguration()
+                .WriteTo.Console()
+                .CreateLogger();
 			if (!File.Exists(TestDataPath))
 				File.WriteAllText(TestDataPath, "");
 		}

@@ -1,9 +1,9 @@
 # Path to the main todo file
-file_path: "/Users/chris.jansen/Dropbox/todo/todo.txt"
+file_path: "<path-to-todo-file>"
 # Path to the archive file, for completed tasks
-archive_file_path: "/Users/chris.jansen/Dropbox/todo/done.txt"
+archive_file_path: "<path-to-done-file>"
 # Path to recurring file, for recurring tasks
-recur_file_path: "/Users/chris.jansen/Dropbox/todo/recur.txt"
+recur_file_path: "<path-to-recur-file>"
 # Sort criteria
 sort_type: Alphabetical 
 # The current grouping
