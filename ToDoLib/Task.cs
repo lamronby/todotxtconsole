@@ -34,9 +34,7 @@ namespace ToDoLib
 		private static readonly Regex InitialFieldsRegex =
 			new Regex(
 				@"^(?<completed>x\s)?(?<priority>\([A-Z]\)\s)?(?<date1>((\d{4})-(\d{2})-(\d{2})\s))?(?<date2>((\d{4})-(\d{2})-(\d{2})\s))?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-		private static readonly Regex CompletedRegex = new Regex(@"^X\s((\d{4})-(\d{2})-(\d{2}))?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 		private static readonly Regex PriorityRegex = new Regex(@"^(?<priority>\([A-Z]\)\s)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-		private static readonly Regex CreatedDateRegex = new Regex(@"(?<date>(\d{4})-(\d{2})-(\d{2}))", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 		private const string RelativeDatePatternBare =
 			@"(?<dateRelative>today|tomorrow|(?<weekday>mon(?:day)?|tue(?:sday)?|wed(?:nesday)?|thu(?:rsday)?|fri(?:day)?|sat(?:urday)?|sun(?:day)?))";
@@ -45,12 +43,14 @@ namespace ToDoLib
 			new Regex(RelativeDatePatternBare, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 		
 		private static readonly Regex DueRelativeRegex = new Regex(@"\bdue:" + RelativeDatePatternBare + @"\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-		private static readonly Regex DueDateRegex = new Regex(@"due:(?<date>(\d{4})-(\d{2})-(\d{2}))", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-		private static readonly Regex ThresholdRelativeRegex = new Regex(@"t:"+ RelativeDatePatternBare, RegexOptions.Compiled | RegexOptions.IgnoreCase);
-		private static readonly Regex ThresholdDateRegex = new Regex(@"t:(?<date>(\d{4})-(\d{2})-(\d{2}))", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private static readonly Regex DueDateRegex = new Regex(@"\bdue:(?<date>(\d{4})-(\d{2})-(\d{2}))", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private static readonly Regex ThresholdRelativeRegex = new Regex(@"\bt:"+ RelativeDatePatternBare, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private static readonly Regex ThresholdDateRegex = new Regex(@"\bt:(?<date>(\d{4})-(\d{2})-(\d{2}))", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 		private static readonly Regex ProjectRegex = new Regex(@"(?<proj>\+[^\s]+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 		private static readonly Regex ContextRegex = new Regex(@"(?<context>\@[^\s]+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
+		private const string DateOutputFormat = "yyyy-MM-dd";
+	
 		public int Id { get; internal init; }
 		public List<string> Projects { get; private set; }
 		public List<string> Contexts { get; private set; }
@@ -141,12 +141,12 @@ namespace ToDoLib
 			// Format:
 			// <completed_flag> <completed_date> <creation_date> <priority> <body> <due_date> <projects> <contexts>
 			return string.Format("{0}{1}{2}{3}{4}{5}{6}{7}",
-				Completed ? "x " + CompletedDate.Value.ToString("yyyy-MM-dd ") : "",
-				CreationDate.HasValue ? CreationDate.Value.ToString("yyyy-MM-dd ") : "",
+				Completed ? "x " + $"{CompletedDate.Value.ToString(DateOutputFormat)} " : "",
+				CreationDate.HasValue ? $"{CreationDate.Value.ToString(DateOutputFormat)} " : "",
 				string.IsNullOrEmpty(Priority) ? "" : Priority + " ",
 				Body,
-				ThresholdDate.HasValue ? ThresholdDate.Value.ToString(" due:yyyy-MM-dd ") : "",
-				DueDate.HasValue ? DueDate.Value.ToString(" due:yyyy-MM-dd ") : "",
+				ThresholdDate.HasValue ? $" t:{ThresholdDate.Value.ToString(DateOutputFormat)} " : "",
+				DueDate.HasValue ? $" due:{DueDate.Value.ToString(DateOutputFormat)} " : "",
 				Projects == null ? "" : " " + string.Join(" ", Projects),
 				Contexts == null ? "" : " " + string.Join(" ", Contexts));
 		}
@@ -311,7 +311,6 @@ namespace ToDoLib
 				{
 					CreationDate = DateTime.Parse(date1Str);
 				}
-				
 			}).ParseRawElement(DueRelativeRegex, (r) =>
 			{
 				var result = DueRelativeRegex.Match(r).Groups["dateRelative"].Value.Trim();
