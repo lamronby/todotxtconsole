@@ -2,6 +2,9 @@
 using System.IO;
 using System.Linq;
 using ToDoLib;
+using Serilog;
+using Serilog.Events;
+using System;
 
 namespace ClientConsole
 {
@@ -25,17 +28,11 @@ namespace ClientConsole
 
         public Dictionary<string, string> OtherConfig { get; set; }
 
-        public int DebugLevel
-        {
-            get { return (int) Log.LogLevel; }
-            set { Log.LogLevel = (LogLevel) value; }
-        }
-
         public override string ToString( )
         {
             var otherConfig = this.OtherConfig == null ? "" : string.Join(", ", this.OtherConfig.Select(kv => $"{kv.Key}: {kv.Value}"));
             
-            return $"DebugLevel: {this.DebugLevel}, Filter: {this.Filter}, GroupByType: {this.GroupByType}, ListAfterCommand? {this.ListAfterCommand}, ListOnStart? {this.ListOnStart}, SortType: {this.SortType}, DisplayBeforeThresholdDate: {this.DisplayBeforeThresholdDate}. OtherConfig: {otherConfig}";
+            return $"Filter: {this.Filter}, GroupByType: {this.GroupByType}, ListAfterCommand? {this.ListAfterCommand}, ListOnStart? {this.ListOnStart}, SortType: {this.SortType}, DisplayBeforeThresholdDate: {this.DisplayBeforeThresholdDate}. OtherConfig: {otherConfig}";
         }
     }
 }

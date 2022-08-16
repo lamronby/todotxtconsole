@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 using ClientConsole.Commands;
 using ClientConsole.Views;
 using ToDoLib;
-using CommonExtensions;
+using Serilog;
 
 namespace ClientConsole
 {
@@ -37,7 +37,6 @@ namespace ClientConsole
             _context = new CommandContext()
             {
                 TaskList =  taskList,
-                DebugLevel = configService.ToDoConfig.DebugLevel,
                 GroupByType = configService.ToDoConfig.GroupByType, 
                 SortType = configService.ToDoConfig.SortType,
                 Filter = new TaskFilter(configService.ToDoConfig.FilterText),
@@ -45,7 +44,7 @@ namespace ClientConsole
                 ListAfterCommand = configService.ToDoConfig.ListAfterCommand,
                 DisplayBeforeThresholdDate = configService.ToDoConfig.DisplayBeforeThresholdDate				
             };
-            Console.WriteLine($"Command context: DebugLevel: {_context.DebugLevel}, GroupByType: {_context.GroupByType.ToString()}, SortType: {_context.SortType.ToString()}, Filter: {_context.Filter}");
+            Log.Debug($"Command context: {_context.ToString()}");
         }
 
         public void Run()

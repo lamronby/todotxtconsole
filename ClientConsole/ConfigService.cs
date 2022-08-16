@@ -37,7 +37,7 @@ namespace ClientConsole
                 filterText: filterText,
                 listOnStart: listOnStart,
                 listAfterCommand: listAfterCommand,
-                debugLevel: debugLevel);
+                logLevel: debugLevel);
             PersistConfig();
         }
 

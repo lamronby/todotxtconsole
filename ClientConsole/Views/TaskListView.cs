@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using ToDoLib;
+using Serilog;
 
 namespace ClientConsole.Views
 {

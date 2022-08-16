@@ -22,7 +22,7 @@ namespace ClientConsole
 
         public bool DisplayBeforeThresholdDate { get; set; }
 
-        public int DebugLevel { get; set; }
+        public int LogLevel { get; set; }
 
         public ToDoConfig() { }
         
@@ -35,7 +35,7 @@ namespace ClientConsole
             bool listOnStart = true,
             bool listAfterCommand = false,
             bool displayBeforeThresholdDate = false,
-            int debugLevel = 0)
+            int logLevel = 0)
         {
             FilePath = filePath;
             ArchiveFilePath = archiveFilePath;
@@ -45,7 +45,7 @@ namespace ClientConsole
             ListOnStart = listOnStart;
             ListAfterCommand = listAfterCommand;
             DisplayBeforeThresholdDate = displayBeforeThresholdDate;
-            DebugLevel = debugLevel;
+            LogLevel = logLevel;
         }
     }
 }
