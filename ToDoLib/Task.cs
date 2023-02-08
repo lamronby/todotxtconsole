@@ -39,13 +39,15 @@ namespace ToDoLib
 		private const string RelativeDatePatternBare =
 			@"(?<dateRelative>today|tomorrow|(?<weekday>mon(?:day)?|tue(?:sday)?|wed(?:nesday)?|thu(?:rsday)?|fri(?:day)?|sat(?:urday)?|sun(?:day)?))";
 
+		private const string DatePattern = @"(?<date>(\d{4})-(\d{1,2})-(\d{1,2}))";
+
 		private static readonly Regex RelativeDatePatternRegex =
 			new Regex(RelativeDatePatternBare, RegexOptions.Compiled | RegexOptions.IgnoreCase);
-		
+
 		private static readonly Regex DueRelativeRegex = new Regex(@"\bdue:" + RelativeDatePatternBare + @"\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-		private static readonly Regex DueDateRegex = new Regex(@"\bdue:(?<date>(\d{4})-(\d{2})-(\d{2}))", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-		private static readonly Regex ThresholdRelativeRegex = new Regex(@"\bt:"+ RelativeDatePatternBare, RegexOptions.Compiled | RegexOptions.IgnoreCase);
-		private static readonly Regex ThresholdDateRegex = new Regex(@"\bt:(?<date>(\d{4})-(\d{2})-(\d{2}))", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private static readonly Regex DueDateRegex = new Regex(@"\bdue:" + DatePattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private static readonly Regex ThresholdRelativeRegex = new Regex(@"\bt:" + RelativeDatePatternBare, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private static readonly Regex ThresholdDateRegex = new Regex(@"\bt:" + DatePattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 		private static readonly Regex ProjectRegex = new Regex(@"(?<proj>\+[^\s]+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 		private static readonly Regex ContextRegex = new Regex(@"(?<context>\@[^\s]+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 

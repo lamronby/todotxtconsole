@@ -54,6 +54,7 @@ namespace ToDoLib
 		public RecurringTask(int id, string raw) : base(id, RecurrenceRegexRaw.Replace(raw, ""))
  		{
 			Id = id;
+            ParseRaw(raw);
 		}
 
 
