@@ -123,7 +123,7 @@ namespace ToDoLib
 							this.Tasks.Remove(toRemove);
 						}
 					}
-					Log.Debug("Finished reloading tasks from {0}", this.FilePath);
+					Log.Debug("Finished reloading {0} tasks from {1}", this.Tasks.Count, this.FilePath);
 				}
 				else
             	{
@@ -133,7 +133,7 @@ namespace ToDoLib
 					{
 						this.Tasks.Add(new Task(GetNextId(), t));
 					}
-					Log.Debug("Finished loading tasks from {0}", this.FilePath);
+					Log.Debug("Finished loading {0} tasks from {1}", this.Tasks.Count, this.FilePath);
 				}
 				this.LastTaskListLoadDate = DateTime.Now;
             }

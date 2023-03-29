@@ -133,8 +133,6 @@ namespace ClientConsole
 
         private void CheckRecurringTasks()
         {
-            Log.Debug($"In CheckRecurringTasks, recurring tasks list is {_recurTaskList?.RecurringTasks?.Count ?? 0}");
-
             if (_recurTaskList == null) return;
 
             foreach (var task in _recurTaskList.GetGeneratedRecurringTasks(_context.TaskList))

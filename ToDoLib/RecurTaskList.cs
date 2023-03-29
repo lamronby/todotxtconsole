@@ -63,7 +63,7 @@ namespace ToDoLib
                     this.Tasks.Add(task);
                     this.RecurringTasks.Add(task);
                 }
-                Log.Debug("Finished loading recurring tasks from {0}", FilePath);
+                Log.Debug("Finished loading {0} recurring tasks from {1}", this.Tasks.Count, FilePath);
 				this.LastTaskListLoadDate = DateTime.Now;
             }
             catch (IOException ex)
@@ -107,16 +107,24 @@ namespace ToDoLib
             {
                 if (task.Frequency == RecurFrequency.Daily)
                 {
-                    // for strict, only add if there are no matching tasks, and only add one
-                    if (task.Strict && activeTaskList.Tasks.Any(t => t.Equals(task)))
+                    if (task.Strict)
                     {
-                        Log.Debug($"GetNewRecurringTasks: adding strict daily, did not find existing matching. Task: {task}");
-                        newRecurringTasks.Add(task);
-                    }
-                    else if (!task.Strict)
-                    {
-                        Log.Debug($"GetNewRecurringTasks: adding daily. Task: {task}");
+                        // add regardless of whether there's an existing matching task
+                        Log.Debug($"GetNewRecurringTasks: adding strict daily. Task: {task}");
                         addTasks(task, (d => true));
+                    }
+                    else
+                    {
+                        // Normally (non-strict), only add if there are no matching tasks
+                        if (activeTaskList.Tasks.Any(t => t.Equals(task)))
+                        {
+                            Log.Debug($"GetNewRecurringTasks: not adding daily task, found existing matching. Task: {task}");
+                        }
+                        else
+                        {
+                            Log.Debug($"GetNewRecurringTasks: adding strict daily, did not find existing matching. Task: {task}");
+                            newRecurringTasks.Add(task);
+                        }
                     }   
                 }
                 else if (task.Frequency == RecurFrequency.Weekly)
