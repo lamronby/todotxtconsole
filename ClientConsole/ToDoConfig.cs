@@ -20,6 +20,8 @@ namespace ClientConsole
 
         public bool ListAfterCommand { get; set; }
 
+        public bool FullReloadAfterChanges { get; set; }
+
         public bool DisplayBeforeThresholdDate { get; set; }
 
         public int LogLevel { get; set; }
@@ -34,6 +36,7 @@ namespace ClientConsole
             string filterText = null,
             bool listOnStart = true,
             bool listAfterCommand = false,
+            bool fullReloadAfterChanges = false,
             bool displayBeforeThresholdDate = false,
             int logLevel = 0)
         {
@@ -44,6 +47,7 @@ namespace ClientConsole
             FilterText = filterText;
             ListOnStart = listOnStart;
             ListAfterCommand = listAfterCommand;
+            FullReloadAfterChanges = fullReloadAfterChanges;
             DisplayBeforeThresholdDate = displayBeforeThresholdDate;
             LogLevel = logLevel;
         }

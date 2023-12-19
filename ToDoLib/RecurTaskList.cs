@@ -17,11 +17,10 @@ namespace ToDoLib
 
         public List<RecurringTask> RecurringTasks { get; protected set; }
 
-        public RecurTaskList(string filePath) : base(filePath)
+        public RecurTaskList(string filePath, bool fullReloadAfterChanges) : base(filePath, fullReloadAfterChanges)
         {
 
-        } // TODO I don't think this will work
-
+        }
 
         public IList<Task> GetGeneratedRecurringTasks(TaskList activeTaskList)
         {

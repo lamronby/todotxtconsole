@@ -296,14 +296,14 @@ namespace ClientConsole
             {
                 throw new ArgumentException($"Archive file path does not exist: {configService.ToDoConfig.ArchiveFilePath}");
             }
-            var taskList = LoadTasks(configService.ToDoConfig.FilePath);
+            var taskList = LoadTasks(configService.ToDoConfig.FilePath, configService.ToDoConfig.FullReloadAfterChanges);
 
             var recurFilePath = configService.ToDoConfig.RecurFilePath;
             if (!File.Exists(recurFilePath))
             {
                 throw new ArgumentException($"Recur file path was specified but does not exist: {recurFilePath}");
             }
-            var recurTaskList = LoadRecurringTasks(recurFilePath);
+            var recurTaskList = LoadRecurringTasks(recurFilePath, configService.ToDoConfig.FullReloadAfterChanges);
 
             var commands = LoadCommands();
 
@@ -312,13 +312,13 @@ namespace ClientConsole
             controller.Run();
         }
 
-        private static TaskList LoadTasks(string filePath)
+        private static TaskList LoadTasks(string filePath, bool fullReloadAfterChanges)
         {
             TaskList taskList = null;
 
             try
             {
-                taskList = new TaskList(filePath);
+                taskList = new TaskList(filePath, fullReloadAfterChanges);
             }
             catch (Exception ex)
             {
@@ -329,13 +329,13 @@ namespace ClientConsole
             return taskList;
         }
 
-        private static RecurTaskList LoadRecurringTasks(string filePath)
+        private static RecurTaskList LoadRecurringTasks(string filePath, bool fullReloadAfterChanges)
         {
             RecurTaskList taskList = null;
 
             try
             {
-                taskList = new RecurTaskList(filePath);
+                taskList = new RecurTaskList(filePath, fullReloadAfterChanges);
             }
             catch (Exception ex)
             {

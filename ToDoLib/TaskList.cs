@@ -20,7 +20,9 @@ namespace ToDoLib
         // NB, this is not the place for higher-level functions like searching, task manipulation etc. It's simply 
         // for CRUDing the todo.txt file. 
         
-    	private int _nextId = 0;
+    	private int _nextId;
+
+        private bool _fullReloadAfterChanges;
 
         protected string FilePath;
 
@@ -46,9 +48,10 @@ namespace ToDoLib
 		}
 
         
-        public TaskList(string filePath)
+        public TaskList(string filePath, bool fullReloadAfterChanges = false)
         {
             FilePath = filePath;
+            _fullReloadAfterChanges = fullReloadAfterChanges;
             ReloadTasks();
         }
 
@@ -85,57 +88,58 @@ namespace ToDoLib
 			try
             {
 				var lines = File.ReadAllLines(this.FilePath);
-				if (this.Tasks != null)
-				{
-					var fileTasks = lines.Select(t => new Task(t)).ToList();
+                if (this.Tasks == null || _fullReloadAfterChanges)
+                {
+                    // Full load.
+                    this.Tasks = new List<Task>();
+                    _nextId = 0;
+                    foreach (var t in lines)
+                    {
+                        this.Tasks.Add(new Task(GetNextId(), t));
+                    }
+                    Log.Debug("Finished loading {0} tasks from {1}", this.Tasks.Count, this.FilePath);
+                }
+                else
+                {
+                    var fileTasks = lines.Select(t => new Task(t)).ToList();
 
-					// A real reload.
-					if (fileTasks.Count == this.Tasks.Count)
-					{
-						// Either the list and file are in sync or there was a
-						// task update. Update all tasks but don't change the IDs.
-						for (int i = 0; i < fileTasks.Count; i++)
-						{
-							if (!fileTasks[i].Equals(this.Tasks[i]))
-							{
-								Log.Debug("Found updated task {0}: {1}", i.ToString(), lines[i]);
-								this.Tasks[i].Update(lines[i]);
-							}
-						}
-					}
-					else if (lines.Length > this.Tasks.Count)
-					{
-						// Must have been an add.
-						for (int i = this.Tasks.Count; i < lines.Length; i++)
-						{
-							Log.Debug("Adding new task '{0}'", lines[i]);
-							this.Tasks.Add(new Task(GetNextId(), lines[i]));
-						}
-					}
-					else
-					{
-						var toRemoves = fileTasks.Except(this.Tasks.Select(t => t));
+                    // A real reload.
+                    if (fileTasks.Count == this.Tasks.Count)
+                    {
+                        // Either the list and file are in sync or there was a
+                        // task update. Update all tasks but don't change the IDs.
+                        for (int i = 0; i < fileTasks.Count; i++)
+                        {
+                            if (!fileTasks[i].Equals(this.Tasks[i]))
+                            {
+                                Log.Debug("Found updated task {0}: {1}", i.ToString(), lines[i]);
+                                this.Tasks[i].Update(lines[i]);
+                            }
+                        }
+                    }
+                    else if (lines.Length > this.Tasks.Count)
+                    {
+                        // Must have been an add.
+                        for (int i = this.Tasks.Count; i < lines.Length; i++)
+                        {
+                            Log.Debug("Adding new task '{0}'", lines[i]);
+                            this.Tasks.Add(new Task(GetNextId(), lines[i]));
+                        }
+                    }
+                    else
+                    {
+                        var toRemoves = fileTasks.Except(this.Tasks.Select(t => t));
 
-						foreach (var toRemove in toRemoves)
-						{
-							//var r = _tasks.FirstOrDefault(t => t.Raw == raw);
-							Log.Debug("Removing task {0}: {1}", toRemove.Id.ToString(), toRemove.Body);
-							this.Tasks.Remove(toRemove);
-						}
-					}
-					Log.Debug("Finished reloading {0} tasks from {1}", this.Tasks.Count, this.FilePath);
-				}
-				else
-            	{
-					// First load.
-					this.Tasks = new List<Task>();
-					foreach (var t in lines)
-					{
-						this.Tasks.Add(new Task(GetNextId(), t));
-					}
-					Log.Debug("Finished loading {0} tasks from {1}", this.Tasks.Count, this.FilePath);
-				}
-				this.LastTaskListLoadDate = DateTime.Now;
+                        foreach (var toRemove in toRemoves)
+                        {
+                            //var r = _tasks.FirstOrDefault(t => t.Raw == raw);
+                            Log.Debug("Removing task {0}: {1}", toRemove.Id.ToString(), toRemove.Body);
+                            this.Tasks.Remove(toRemove);
+                        }
+                    }
+                    Log.Debug("Finished reloading {0} tasks from {1}", this.Tasks.Count, this.FilePath);
+                }
+                this.LastTaskListLoadDate = DateTime.Now;
             }
             catch (IOException ex)
             {
