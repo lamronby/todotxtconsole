@@ -1,50 +1,20 @@
 ﻿#
-# How tasks recur (see https://swiftodoapp.com/todotxt-syntax/recurrence/)
-# Normal: a new task is added when the previous task is completed. Default.
+# How tasks recur
+# Normal (non-strict): a new task is added when the previous task is completed. Default.
 # Strict: a new task is added using the recurrence schedule, regardless of the status of the previous task. Specify
-#   strict using +
+#   strict by placing + at the beginning of the recurrence specifier. Strict tasks automatically include a due 
+#   date with the date they are added. Without it, multiple strict tasks in todo.txt would be duplicates.
 #
 # Format:
-# <creation_date> <recurrence> <task>
-#
-# Examples:
-# 2021-12-23 weekly Pay therapy bill +important @personal
+# <recurrence> <task>
 #
 # Accepted recurrence:
-# daily
-# weekdaily
-# weekendly
-# every N days
-# weekly
-# every N weeks
-# monthly
-# yearly
-# every N months
-# Nth day monthly
-#
-# Revised approach (from swifttodo)
-# d (calendar days)
-# b (business days)
-# w weeks
-# m months
-# y years
-#
-# Examples:
-# 2021-12-23 +1w Pay therapy bill +important @personal
-# 2021-12-20 1d Take trash out to garage @home
-#
-# Approach 3:
-#
 # daily: task    
-# day: task
+# <day>: task
 # month_day(st|rd|th): task
-# Normal: a new task is added only if there is not matching existing task. Default.
-# Strict: a new task is added using the recurrence schedule, regardless of whether 
-# a matching task already exists. Specify strict using + at the beginning of the 
-# recurrence specifier.
 #  
-# day       is one of "monday", "tuesday", "wednesday", "thursday", "friday", "saturday" or "sunday". If a task needs to 
-#           happen on two different days of the week, you'll need two lines.
+# day       is one of "monday", "tuesday", "wednesday", "thursday", "friday", "saturday" or "sunday".
+#           If a task needs to happen on two different days of the week, add two lines.
 # month_day is the day of the month on which a task should recur 
 #
 # Examples:
@@ -52,6 +22,7 @@
 # sunday: (A) Weekly review of projects list
 # monday: Take out the trash @home
 # +18th: Apply the dog's flea medicine
+#
 #
 # Issues to deal with:
 # If recur check only runs when console is running:

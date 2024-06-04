@@ -133,6 +133,16 @@ namespace ToDoLib
 			Completed = completed;
 		}
 
+		public Task(string priority, List<string> projects, List<string> contexts, string body, DateTime? dueDate, bool completed = false)
+		{
+			Priority = priority;
+			Projects = projects;
+			Contexts = contexts;
+			DueDate = dueDate;
+			Body = body;
+			Completed = completed;
+		}
+
 		public void Update(string raw)
 		{
 			ParseRaw(raw);

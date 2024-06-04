@@ -87,44 +87,48 @@ namespace ToDoLib
             {
                 for (var date = _previousGenerateDate.Date.AddDays(1); date <= now; date = date.AddDays(1))
                 {
-                    var rt = t as RecurringTask;
-                    Log.Debug($"GetNewRecurringTasks: checking date {date:yyyy-MM-dd} should add {(rt.Strict ? "strict" : "non-strict")} {rt.Frequency} ({rt.RecurIndex}) task? {rt}"); 
+                    Log.Debug($"GetNewRecurringTasks: checking date {date:yyyy-MM-dd} should add {(t.Strict ? "strict" : "non-strict")} {t.Frequency} ({t.RecurIndex}) task? {t}"); 
                     
                     // has the task recurrence transpired since the last generate time?
                     if (f(date))
                     {
                         // this logic only adds one weekly item, even if the days since last
                         // generated spans > 1 week
-                        Log.Debug($"GetNewRecurringTasks: adding {rt.Frequency} task {rt}");
-                        newRecurringTasks.Add(t);
+                        Log.Debug($"GetNewRecurringTasks: adding {(t.Strict ? "strict" : "non-strict")} {t.Frequency} task {t}");
+                        newRecurringTasks.Add(new Task(
+                            t.Priority,
+                            t.Projects,
+                            t.Contexts,
+                            t.Body,
+                            now,
+                            t.Completed));
                         break;
                     }
                 }
             };
 
+            /**
+             * Decision to add involves:
+             *   strict vs non-strict
+             *   whether the task is eligible to be added based on date
+             *   the number of times the tasks is eligible to be added based on day(s) transpired
+             */
+
             foreach (var task in this.RecurringTasks)
             {
+                // non-strict - only add if there are no matching tasks
+                if (!task.Strict && activeTaskList.Tasks.Any(t => t.Equals(task)))
+                {
+                    Log.Debug($"GetNewRecurringTasks: Skipping {task.Frequency} task, found existing match. Task: {task}");
+                    continue;
+                }
+
                 if (task.Frequency == RecurFrequency.Daily)
                 {
-                    if (task.Strict)
-                    {
-                        // add regardless of whether there's an existing matching task
-                        Log.Debug($"GetNewRecurringTasks: adding strict daily. Task: {task}");
-                        addTasks(task, (d => true));
-                    }
-                    else
-                    {
-                        // Normally (non-strict), only add if there are no matching tasks
-                        if (activeTaskList.Tasks.Any(t => t.Equals(task)))
-                        {
-                            Log.Debug($"GetNewRecurringTasks: not adding daily task, found existing matching. Task: {task}");
-                        }
-                        else
-                        {
-                            Log.Debug($"GetNewRecurringTasks: adding strict daily, did not find existing matching. Task: {task}");
-                            newRecurringTasks.Add(task);
-                        }
-                    }   
+                    // either the task is strict and should be added regardless or the task is 
+                    // non-strict and there are no existing matching tasks. In either case add
+                    // if > 1 day has transpired.
+                    addTasks(task, (d => true));
                 }
                 else if (task.Frequency == RecurFrequency.Weekly)
                 {
@@ -133,7 +137,6 @@ namespace ToDoLib
                 else // task.Frequency == RecurFrequency.Monthly)
                 {
                     // has the monthday transpired since the last generate time?
-                    var lastGenerated = _previousGenerateDate;
                     addTasks(task, (d => (int)d.Day == task.RecurIndex));
                 }
             }
