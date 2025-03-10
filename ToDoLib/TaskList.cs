@@ -53,6 +53,19 @@ namespace ToDoLib
             FilePath = filePath;
             _fullReloadAfterChanges = fullReloadAfterChanges;
             ReloadTasks();
+
+            using var watcher = new FileSystemWatcher(Path.GetDirectoryName(filePath), Path.GetFileName(filePath))
+            {
+                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size
+            };
+
+            watcher.Changed += (sender, e) =>
+            {
+                Console.WriteLine($"Detected {e.FullPath} has been modified. Reloading file.");
+                ReloadTasks();
+            };
+
+            watcher.EnableRaisingEvents = true;
         }
 
         public virtual void ReloadTasks()

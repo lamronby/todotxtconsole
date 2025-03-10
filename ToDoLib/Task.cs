@@ -195,7 +195,7 @@ namespace ToDoLib
 				return false;
 				
 			if (this.CompletedDate.HasValue && other.CompletedDate.HasValue
-				&& this.CompletedDate.Value.Equals(other.CompletedDate.Value))
+				&& !this.CompletedDate.Value.Equals(other.CompletedDate.Value))
 					return false;
 
 			if (this.Priority.CompareTo(other.Priority) != 0)
@@ -263,7 +263,32 @@ namespace ToDoLib
 			return 0;
 		}
 
-		public void IncPriority()
+        public override int GetHashCode()
+        {
+			unchecked // Overflow is fine, just wrap
+			{
+				int hash = 233;
+				// Suitable nullity checks etc, of course :)
+				hash = hash * 281 + this.Completed.GetHashCode();
+				hash = hash * 281 + this.Priority.GetHashCode();
+				hash = hash * 281 + this.Body.GetHashCode();
+				if (this.CompletedDate.HasValue)
+				{
+					hash = hash * 281 + this.CompletedDate.Value.GetHashCode();
+				}
+				return hash;
+			}
+
+			// if (string.Join(" ", this.Projects).CompareTo(string.Join(" ", other.Projects)) != 0)
+			// 	return false;
+
+			// if (string.Join(" ", this.Contexts).CompareTo(string.Join(" ", other.Contexts)) != 0)
+			// 	return false;
+
+			// return true;
+    }
+
+        public void IncPriority()
 		{
 			ChangePriority(-1);
 		}

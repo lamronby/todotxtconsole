@@ -1,11 +1,22 @@
-﻿Set configuration properties via command-line @dev
-Add a context class to pass to commands; include configuration @dev
-Does not work when the files (todo.txt, done.txt) do not exist @bug
-Printing contexts when sorting by project does not work @bug
-Implement better listing algorithm - separate class? @dev
-Utility to pull ToDos from source code to a todo.txt file. Include source file and line number. Could use context for source file. @enhancement
-Incorporate Spec# for fun. http://research.microsoft.com/en-us/projects/specsharp  @enhancement
-Modify Command interface to be static? @dev
-Refactor to be a .NET core project @dev
-Refactor to use a config object for YAML config serialization and deserialization @dev 
-Integrate log4net or another OSS logging framework @dev
+﻿(A) Upgrade to dotnet 8
+(A) Integrate FileWatcher
+(A) Integrate MS host service
+(B) Refactor CL args: if nothing provided, look for todo file in current directory. Only other arg is folder to todo file or direct todo file reference. @dev
+(B) Refactor config to use appsettings @dev
+(B) Allow all config to be managed via console @dev
+(B) If no recur file exists, don't use recurring tasks @dev
+(B) Task: add Raw property back and integrate it into Equals, GetHashCode @dev
+(B) Either have a way to eval recurring tasks as of a specific date or write a file or comment that records last run date @dev
+(B) Use a different command-line parser @dev
+(B) Configure github pipeline to build and run tests @dev
+(C) Does not work when the files (todo.txt, done.txt) do not exist @bug
+(C) Printing contexts when sorting by project does not work @bug
+(C) Integrate nerdbank gitversioning @derived
+(C) Implement better listing algorithm - separate class? @dev
+(E) Utility to pull ToDos from source code to a todo.txt file. Include source file and line number. Could use context for source file. @enhancement
+(E) Incorporate Spec# for fun. http://research.microsoft.com/en-us/projects/specsharp  @enhancement
+(E) Modify Command interface to be static? @dev
+X 2025-03-10 Refactor to use a config object for YAML config serialization and deserialization @dev 
+X 2025-03-10 Integrate log4net or another OSS logging framework @dev
+X 2025-03-10 Add a context class to pass to commands; include configuration @dev
+X 2025-03-10 Refactor to be a .NET core project @dev

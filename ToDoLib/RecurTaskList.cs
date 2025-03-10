@@ -17,7 +17,7 @@ namespace ToDoLib
 
         public List<RecurringTask> RecurringTasks { get; protected set; }
 
-        public RecurTaskList(string filePath, bool fullReloadAfterChanges) : base(filePath, fullReloadAfterChanges)
+        public RecurTaskList(string filePath, bool fullReloadAfterChanges = false) : base(filePath, fullReloadAfterChanges)
         {
 
         }
