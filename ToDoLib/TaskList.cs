@@ -186,6 +186,7 @@ namespace ToDoLib
                 if (text.Length > 0 && !text.EndsWith(Environment.NewLine))
                     output = Environment.NewLine + output;
 
+                _watcher.EnableRaisingEvents = false;
                 File.AppendAllLines(FilePath, new string[] { output });
 
 				Console.WriteLine("Task '{0}' added", output);
@@ -213,10 +214,12 @@ namespace ToDoLib
             {
                 Log.Debug("Deleting task {0}: {1}", task.Id.ToString(), task.ToString());
 
-                ReloadTasks(); // make sure we're working on the latest file
-                
                 if (this.Tasks.Remove(this.Tasks.First(t => t.Equals(task))))
+                {
+                    _watcher.EnableRaisingEvents = false;
                     File.WriteAllLines(FilePath, this.Tasks.Select(t => t.ToString()));
+                    _watcher.EnableRaisingEvents = true;
+                }
                 
                 Log.Debug("Task {0} deleted", task.Id.ToString());
 				Console.WriteLine("Task {0} deleted", task.Id.ToString());
