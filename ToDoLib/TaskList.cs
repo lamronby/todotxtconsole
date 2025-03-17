@@ -24,6 +24,8 @@ namespace ToDoLib
 
         private bool _fullReloadAfterChanges;
 
+        private FileSystemWatcher _watcher;
+
         public string FilePath;
 
         public DateTime LastModifiedDate => File.GetLastAccessTime(FilePath);
@@ -52,12 +54,28 @@ namespace ToDoLib
         {
             FilePath = filePath;
             _fullReloadAfterChanges = fullReloadAfterChanges;
+
+            _watcher = new FileSystemWatcher(Path.GetDirectoryName(filePath), Path.GetFileName(filePath));
+            _watcher.NotifyFilter = NotifyFilters.LastWrite;
+            _watcher.Changed += OnFileChanged;
+
+            ReloadTasks();
+        }
+
+        private void OnFileChanged(object sender, FileSystemEventArgs e)
+        {
+            if (e.ChangeType != WatcherChangeTypes.Changed)
+            {
+                return;
+            }            
+            Console.WriteLine($"Detected {e.FullPath} has been modified. Reloading file.");
             ReloadTasks();
         }
 
         public virtual void ReloadTasks()
         {
             Log.Debug("Loading tasks from {0}", FilePath);
+            _watcher.EnableRaisingEvents = false;
             
 			/*
 			 * TODO: Fix. General strategy (implemented outside of TaskList) - before executing a task (e.g. do), if file timestamp has changed, abort and reload file. Make user redo task. Reloads should be rare enough that this is not annoying.
@@ -152,6 +170,7 @@ namespace ToDoLib
                 Log.Error(ex.ToString());
                 throw;
             }
+            _watcher.EnableRaisingEvents = true;
             
         }
 

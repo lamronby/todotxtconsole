@@ -52,19 +52,6 @@ namespace ClientConsole
             if ( _context.ListOnStart )
                 TaskListView.Display( _context.TaskList, _context, "" );
 
-            using var watcher = new FileSystemWatcher(Path.GetDirectoryName(_context.TaskList.FilePath), Path.GetFileName(_context.TaskList.FilePath))
-            {
-                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size
-            };
-
-            watcher.Changed += (sender, e) =>
-            {
-                Console.WriteLine($"Detected {e.FullPath} has been modified. Reloading file.");
-                _context.TaskList.ReloadTasks();
-            };
-
-            watcher.EnableRaisingEvents = true;
-
 			while (true)
 			{
 				Console.Write("todo=> ");
