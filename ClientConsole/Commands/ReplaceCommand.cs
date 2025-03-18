@@ -31,12 +31,12 @@ namespace ClientConsole.Commands
 			if (!String.IsNullOrEmpty(id))
 			{
 				var idNum = Int32.Parse(id);
-                var task = context.TaskList.Tasks.FirstOrDefault( t => t.Id == idNum );
+				var idx = context.TaskList.Tasks.FindIndex(t => t.Id == idNum);
 
 				// TODO Handle not found.
-				if (task != null)
+				if (idx >= 0)
 				{
-					task.Update(update);
+					context.TaskList.Tasks[idx] = new Task(idNum, update);
                     context.TaskList.Save();
 					Console.WriteLine("Task {0} updated to {1}", id, update);
 				}

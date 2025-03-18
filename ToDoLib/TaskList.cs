@@ -105,13 +105,14 @@ namespace ToDoLib
 
 			try
             {
-				var lines = File.ReadAllLines(this.FilePath);
+                var filteredLines = File.ReadAllLines(this.FilePath).Where(l => l[0] != '#').ToList();
+                
                 if (this.Tasks == null || _fullReloadAfterChanges)
                 {
                     // Full load.
                     this.Tasks = new List<Task>();
                     _nextId = 0;
-                    foreach (var t in lines)
+                    foreach (var t in filteredLines)
                     {
                         this.Tasks.Add(new Task(GetNextId(), t));
                     }
@@ -119,7 +120,7 @@ namespace ToDoLib
                 }
                 else
                 {
-                    var fileTasks = lines.Select(t => new Task(t)).ToList();
+                    var fileTasks = filteredLines.Select(t => new Task(t)).ToList();
 
                     // A real reload.
                     if (fileTasks.Count == this.Tasks.Count)
@@ -130,18 +131,18 @@ namespace ToDoLib
                         {
                             if (!fileTasks[i].Equals(this.Tasks[i]))
                             {
-                                Log.Debug("Found updated task {0}: {1}", i.ToString(), lines[i]);
-                                this.Tasks[i].Update(lines[i]);
+                                Log.Debug("Found updated task {0}: {1}", i.ToString(), filteredLines[i]);
+                                this.Tasks[i] = new Task(this.Tasks[i].Id, filteredLines[i]);
                             }
                         }
                     }
-                    else if (lines.Length > this.Tasks.Count)
+                    else if (filteredLines.Count > this.Tasks.Count)
                     {
                         // Must have been an add.
-                        for (int i = this.Tasks.Count; i < lines.Length; i++)
+                        for (int i = this.Tasks.Count; i < filteredLines.Count; i++)
                         {
-                            Log.Debug("Adding new task '{0}'", lines[i]);
-                            this.Tasks.Add(new Task(GetNextId(), lines[i]));
+                            Log.Debug("Adding new task '{0}'", filteredLines[i]);
+                            this.Tasks.Add(new Task(GetNextId(), filteredLines[i]));
                         }
                     }
                     else

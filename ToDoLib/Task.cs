@@ -143,11 +143,6 @@ namespace ToDoLib
 			Completed = completed;
 		}
 
-		public void Update(string raw)
-		{
-			ParseRaw(raw);
-		}
-
 		public override string ToString()
 		{
 			// Format:
