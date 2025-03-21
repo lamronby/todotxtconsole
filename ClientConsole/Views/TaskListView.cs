@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using ToDoLib;
+using Serilog;
 
 namespace ClientConsole.Views
 {
@@ -18,20 +19,24 @@ namespace ClientConsole.Views
 
         private static void PrintTasks(TaskList taskList, Regex searchExpr, CommandContext context)
         {
-            var matchList = new List<Task>(taskList.Tasks);
+            var matchList = context.TaskList.Tasks.AsEnumerable<Task>();
 
             if (context.Filter != null)
             {
-                matchList = taskList.Tasks
-                                     .Where(t => context.Filter.Matches(t))
-                                     .ToList();
+                matchList = context.TaskList.Tasks
+                                     .Where(t => context.Filter.Matches(t));
             }
 
             if (searchExpr != null)
             {
                 matchList = matchList
-                    .Where(t => searchExpr.IsMatch(t.Body))
-                    .ToList();
+                    .Where(t => searchExpr.IsMatch(t.Body));
+            }
+
+            if (!context.DisplayBeforeThresholdDate)
+            {
+                var now = DateTime.Now;
+                matchList = matchList.Where(t => !t.ThresholdDate.HasValue || t.ThresholdDate < now);
             }
 
             if (context.GroupByType == GroupByType.Project)
@@ -185,7 +190,7 @@ namespace ClientConsole.Views
                 case SortType.Alphabetical:
                     return tasks.OrderBy(t => (t.Completed ? "z" : "a") + t.Body);
                 case SortType.DueDate:
-                    return tasks.OrderBy(t => (t.Completed ? "z" : "a") + (string.IsNullOrEmpty(t.DueDate) ? "zzz" : t.DueDate));
+                    return tasks.OrderBy(t => (t.Completed ? "z" : "a") + (t.DueDate.HasValue ? t.DueDate : "zzz"));
                 case SortType.Priority:
                     return tasks.OrderBy(t => (t.Completed ? "z" : "a") + (string.IsNullOrEmpty(t.Priority) ? "zzz" : t.Priority));
                 case SortType.Project:

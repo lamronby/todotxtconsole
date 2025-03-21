@@ -1,0 +1,32 @@
+﻿#
+# How tasks recur
+# Normal (non-strict): a new task is added when the previous task is completed. Default.
+# Strict: a new task is added using the recurrence schedule, regardless of the status of the previous task. Specify
+#   strict by placing + at the beginning of the recurrence specifier. Strict tasks automatically include a due 
+#   date with the date they are added. Without it, multiple strict tasks in todo.txt would be duplicates.
+#
+# Format:
+# <recurrence> <task>
+#
+# Accepted recurrence:
+# daily: task    
+# <day>: task
+# month_day(st|rd|th): task
+#  
+# day       is one of "monday", "tuesday", "wednesday", "thursday", "friday", "saturday" or "sunday".
+#           If a task needs to happen on two different days of the week, add two lines.
+# month_day is the day of the month on which a task should recur 
+#
+# Examples:
+# daily: run the dishwasher
+# sunday: (A) Weekly review of projects list
+# monday: Take out the trash @home
+# +18th: Apply the dog's flea medicine
+#
+#
+# Issues to deal with:
+# If recur check only runs when console is running:
+#  - Could be an arbitrary number of days between runs. Could mitigate by running periodically on own thread.
+#  - If arbitrary number of days, have to manage start-of-week and start-of-month spans.
+# If recur check runs on a schedule:
+#  - Have to manage setup as a recurring task (cron or Windows scheduled task)

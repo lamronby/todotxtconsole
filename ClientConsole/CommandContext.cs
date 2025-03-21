@@ -1,6 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using ToDoLib;
+using Serilog;
+using Serilog.Events;
+using System;
 
 namespace ClientConsole
 {
@@ -20,19 +24,15 @@ namespace ClientConsole
 
         public bool ListAfterCommand { get; set; }
 
-        public Dictionary<string, string> OtherConfig { get; set; }
+        public bool DisplayBeforeThresholdDate { get; set; }
 
-        public int DebugLevel
-        {
-            get { return (int) Log.LogLevel; }
-            set { Log.LogLevel = (LogLevel) value; }
-        }
+        public Dictionary<string, string> OtherConfig { get; set; }
 
         public override string ToString( )
         {
             var otherConfig = this.OtherConfig == null ? "" : string.Join(", ", this.OtherConfig.Select(kv => $"{kv.Key}: {kv.Value}"));
             
-            return $"DebugLevel: {this.DebugLevel}, Filter: {this.Filter}, GroupByType: {this.GroupByType}, ListAfterCommand? {this.ListAfterCommand}, ListOnStart? {this.ListOnStart}, SortType: {this.SortType}. OtherConfig: {otherConfig}";
+            return $"Filter: {this.Filter}, GroupByType: {this.GroupByType}, ListAfterCommand? {this.ListAfterCommand}, ListOnStart? {this.ListOnStart}, SortType: {this.SortType}, DisplayBeforeThresholdDate: {this.DisplayBeforeThresholdDate}. OtherConfig: {otherConfig}";
         }
     }
 }

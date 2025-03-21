@@ -1,18 +1,24 @@
----
 # Path to the main todo file
-file_path: "C:\\dev\\Dropbox\\Todo\\todo.txt"
+file_path: "<path-to-todo-file>"
 # Path to the archive file, for completed tasks
-archive_file_path: "C:\\dev\\Dropbox\\Todo\\done.txt"
+archive_file_path: "<path-to-done-file>"
+# Path to recurring file, for recurring tasks
+recur_file_path: "<path-to-recur-file>"
 # Sort criteria
 sort_type: Alphabetical 
 # The current grouping
 group_by_type: Project
 # Boolean to indicate whether or not to add creation date to each new task
-add_creation_date: true
+# add_creation_date: true
 filter_text:
-# Boolean to indicate whether or not debug logging is enabled
-# debug_logging_on: true
-debug_level: 1
+# Logging level:
+# 0 - verbose
+# 1 - debug
+# 2 - information (default)
+# 3 - warning
+# 4 - error
+# 5 - fatal
+log_level: 1
 list_on_start: true
 list_after_command: false
-chicken_feet: very tasty
+display_before_threshold_date: false

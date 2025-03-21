@@ -2,62 +2,49 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using ClientConsole.Commands;
 using ClientConsole.Views;
 using ToDoLib;
-using CommonExtensions;
+using Serilog;
 
 namespace ClientConsole
 {
     public class ToDoController : IToDoController
     {
         private const string InputPattern = @"^(?<command>\w+)(\s+(?<raw>.*))?$";
-        private readonly Regex _inputPattern = new Regex(InputPattern);
+        private readonly Regex _inputPattern = new Regex(InputPattern, RegexOptions.Compiled);
+        private readonly IDictionary<string, ITodoCommand> _commands = new Dictionary<string, ITodoCommand>();
+        private readonly CommandContext _context;
+        // the list of recurring tasks is not exposed to commands, so it's a member here rather than in CommandContext
+        private RecurTaskList _recurTaskList;
 
-        private IDictionary<string, ITodoCommand> _commands = new Dictionary<string, ITodoCommand>();
-
-        private CommandContext _context;
-        private string _archiveFilePath;
-
-        private readonly IConfigService _configService;
+        private readonly ConfigService _configService;
         private ITaskListView _taskListView;
 
         public ToDoController(
-            IConfigService configService,
+            ConfigService configService,
             TaskList taskList,
-            string archiveFilePath,
+            RecurTaskList recurTaskList,
             IDictionary<string, ITodoCommand> commands,
             ITaskListView taskListView)
         {
             _configService = configService;
             _commands = commands;
             _taskListView = taskListView;
-            _archiveFilePath = archiveFilePath;
+            _recurTaskList = recurTaskList;
 
             _context = new CommandContext()
             {
                 TaskList =  taskList,
-                DebugLevel = Int32.Parse( configService.GetValue( "debug_level" ) ),
-                GroupByType = DotNetExtensions.ParseEnum<GroupByType>(configService.GetValue(ConfigService.GROUP_BY_TYPE_KEY), GroupByType.None),
-                SortType = DotNetExtensions.ParseEnum<SortType>(configService.GetValue(ConfigService.SORT_TYPE_KEY), SortType.Project),
-                Filter = new TaskFilter(configService.GetValue(ConfigService.FILTER_TEXT_KEY)),
+                GroupByType = configService.ToDoConfig.GroupByType, 
+                SortType = configService.ToDoConfig.SortType,
+                Filter = new TaskFilter(configService.ToDoConfig.FilterText),
+                ListOnStart = configService.ToDoConfig.ListOnStart,
+                ListAfterCommand = configService.ToDoConfig.ListAfterCommand,
+                DisplayBeforeThresholdDate = configService.ToDoConfig.DisplayBeforeThresholdDate				
             };
-
-            Console.WriteLine($"Command context: DebugLevel: {_context.DebugLevel}, GroupByType: {_context.GroupByType.ToString()}, SortType: {_context.SortType.ToString()}, Filter: {_context.Filter}");
-            
-            bool listOnStart; 
-            if ( Boolean.TryParse( configService.GetValue( "list_on_start" ), out listOnStart ) )
-            {
-                _context.ListOnStart = listOnStart;
-            }
-
-            bool listAfterCommand;
-            if ( Boolean.TryParse( configService.GetValue( "list_after_command" ), out listAfterCommand ) )
-            {
-                _context.ListAfterCommand = listAfterCommand;
-            }
+            Log.Debug($"Command context: {_context.ToString()}");
         }
 
         public void Run()
@@ -102,6 +89,7 @@ namespace ClientConsole
                 var cmd = _commands[command.ToLower()];
                 cmd.Execute(raw, _context);
                 ProcessArchiveTasks();
+                CheckRecurringTasks();
                 success = true;
             }
             else
@@ -119,7 +107,7 @@ namespace ClientConsole
 
             try
             {
-                using (var writer = File.AppendText(_archiveFilePath))
+                using (var writer = File.AppendText(_configService.ToDoConfig.ArchiveFilePath))
                 {
                     foreach (var task in _context.TasksToArchive)
                     {
@@ -140,6 +128,16 @@ namespace ClientConsole
             {
                 Log.Error(ex.ToString());
                 throw;
+            }
+        }
+
+        private void CheckRecurringTasks()
+        {
+            if (_recurTaskList == null) return;
+
+            foreach (var task in _recurTaskList.GetGeneratedRecurringTasks(_context.TaskList))
+            {
+                _context.TaskList.Add(task);
             }
         }
     }

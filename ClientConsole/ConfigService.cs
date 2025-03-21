@@ -1,53 +1,59 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 using YamlDotNet.RepresentationModel;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace ClientConsole
 {
-    public class ConfigService : IConfigService
+    public class ConfigService
     {
-        public static string FILE_PATH_KEY = "file_path";
-        public static string ARCHIVE_FILE_PATH_KEY = "archive_file_path";
-        public static string SORT_TYPE_KEY = "sort_type";
-        public static string GROUP_BY_TYPE_KEY = "group_by_type";
-        public static string FILTER_TEXT_KEY = "filter_text";
-            
-        private Dictionary<string, string> _todoConfig;
+        private string _configFilePath;
+        
+        public ToDoConfig ToDoConfig { get; private set; }
 
-        public ConfigService()
+        public ConfigService(string configFilePath)
         {
-            _todoConfig = new Dictionary<string, string>();
-            var filePath = @"C:\src\thirdparty\Todotxtconsole\ClientConsole\ClientConsoleConfig.yaml";
-
-            this.IngestConfigFile(filePath);
+            _configFilePath = configFilePath;
+            this.IngestConfigFile(configFilePath);
         }
 
-        public string GetValue(string key)
+        public void SetConfig(
+            string filePath,
+            string archiveFilePath,
+            SortType sortType = SortType.Priority,
+            GroupByType groupByType = GroupByType.None,
+            string filterText = null,
+            bool listOnStart = true,
+            bool listAfterCommand = false,
+            int debugLevel = 0)
         {
-            string value;
-            if ( !_todoConfig.TryGetValue(key, out value))
-                return null;
-
-            return value;
+            this.ToDoConfig = new ToDoConfig(
+                filePath: filePath,
+                archiveFilePath: archiveFilePath,
+                sortType: sortType,
+                groupByType: groupByType,
+                filterText: filterText,
+                listOnStart: listOnStart,
+                listAfterCommand: listAfterCommand,
+                logLevel: debugLevel);
+            PersistConfig();
         }
 
-        public void SetValue(string key, string value)
+        private void IngestConfigFile(string filePath)
         {
-            _todoConfig[key] = value;
-            // TODO Persist
+            var deserializer = new DeserializerBuilder()
+                .WithNamingConvention(UnderscoredNamingConvention.Instance)
+                .Build();
+            this.ToDoConfig = deserializer.Deserialize<ToDoConfig>(File.ReadAllText(filePath));
         }
 
-        private void IngestConfigFile( string filePath )
+        private void PersistConfig()
         {
-            // Load the stream
-            var yaml = new YamlStream();
-            yaml.Load( File.OpenText( filePath ) );
-
-            // Examine the stream
-            var mapping = (YamlMappingNode)yaml.Documents[0].RootNode;
-
-            foreach ( var entry in mapping.Children )
-                _todoConfig.Add( ((YamlScalarNode)entry.Key).Value, ((YamlScalarNode)entry.Value).Value );
+            var serializer = new SerializerBuilder().Build();
+            var yaml = serializer.Serialize(this.ToDoConfig);
+            File.WriteAllText(_configFilePath, yaml);
         }
     }
 }
