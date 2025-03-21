@@ -69,6 +69,7 @@ namespace ToDoLib
                 return;
             }            
             Console.WriteLine($"Detected {e.FullPath} has been modified. Reloading file.");
+            Log.Debug($"Detected {0} has been modified. Reloading file.", e.FullPath);
             ReloadTasks();
         }
 
