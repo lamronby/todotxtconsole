@@ -1,23 +1,23 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CommonExtensions\CommonExtensions.csproj"/>
+    <ProjectReference Include="..\CommonExtensions\CommonExtensions.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="Properties\**"/>
+    <Compile Remove="Properties\**" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Remove="Properties\**"/>
+    <EmbeddedResource Remove="Properties\**" />
   </ItemGroup>
   <ItemGroup>
-    <None Remove="Properties\**"/>
+    <None Remove="Properties\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Serilog" Version="2.11.0"/>
-    <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1"/>
-    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0"/>
+    <PackageReference Include="Serilog" Version="4.2.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
   </ItemGroup>
 </Project>

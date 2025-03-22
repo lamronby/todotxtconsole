@@ -15,8 +15,3 @@
 (E) Utility to pull ToDos from source code to a todo.txt file. Include source file and line number. Could use context for source file. @enhancement
 (E) Incorporate Spec# for fun. http://research.microsoft.com/en-us/projects/specsharp  @enhancement
 (E) Modify Command interface to be static? @dev
-X 2025-03-17 Integrate FileWatcher
-X 2025-03-10 Refactor to use a config object for YAML config serialization and deserialization @dev 
-X 2025-03-10 Integrate log4net or another OSS logging framework @dev
-X 2025-03-10 Add a context class to pass to commands; include configuration @dev
-X 2025-03-10 Refactor to be a .NET core project @dev

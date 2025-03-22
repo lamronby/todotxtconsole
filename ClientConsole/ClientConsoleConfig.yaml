@@ -1,9 +1,9 @@
 # Path to the main todo file
-file_path: "<path-to-todo-file>"
+file_path: "todo.txt"
 # Path to the archive file, for completed tasks
-archive_file_path: "<path-to-done-file>"
+archive_file_path: "archive.txt"
 # Path to recurring file, for recurring tasks
-recur_file_path: "<path-to-recur-file>"
+recur_file_path: "recur.txt"
 # Sort criteria
 sort_type: Alphabetical 
 # The current grouping

@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System;
 using System.Collections.Generic;
 using ToDoLib;
@@ -18,7 +19,7 @@ namespace ToDoTests
             var task = new Task("(A) This is a test task +test @work");
 
             var expectedTask = new Task("(A)", _projects, _contexts, "This is a test task");
-            Assert.AreEqual(expectedTask, task);
+            ClassicAssert.AreEqual(expectedTask, task);
         }
 
         [Test]
@@ -27,7 +28,7 @@ namespace ToDoTests
             var task = new Task("(A) This is a test task @work +test");
 
             var expectedTask = new Task("(A)", _projects, _contexts, "This is a test task");
-            Assert.AreEqual(expectedTask, task);
+            ClassicAssert.AreEqual(expectedTask, task);
         }
 
         [Test]
@@ -36,7 +37,7 @@ namespace ToDoTests
             var task = new Task("(A) This is a test task @work +test  ");
 
             var expectedTask = new Task("(A)", _projects, _contexts, "This is a test task");
-            Assert.AreEqual(expectedTask, task);
+            ClassicAssert.AreEqual(expectedTask, task);
         }
 
         [Test]
@@ -45,7 +46,7 @@ namespace ToDoTests
             var task = new Task("This is a test task @work +test ");
     
             var expectedTask = new Task("", _projects, _contexts, "This is a test task");
-            Assert.AreEqual(expectedTask, task);
+            ClassicAssert.AreEqual(expectedTask, task);
         }
 
         
@@ -55,7 +56,7 @@ namespace ToDoTests
             var task = new Task("Oh (A) This is a test task @work +test ");
 
             var expectedTask = new Task("", _projects, _contexts, "Oh (A) This is a test task");
-            Assert.AreEqual(expectedTask, task);
+            ClassicAssert.AreEqual(expectedTask, task);
         }
 
         [Test]
@@ -64,7 +65,7 @@ namespace ToDoTests
             var task = new Task("(A) @work +test This is a test task");
 
             var expectedTask = new Task("(A)", _projects, _contexts, "This is a test task");
-            Assert.AreEqual(expectedTask, task);
+            ClassicAssert.AreEqual(expectedTask, task);
         }
 
         [Test]
@@ -73,7 +74,7 @@ namespace ToDoTests
             var task = new Task("X @work +test This is a test task");
 
             var expectedTask = new Task("", _projects, _contexts, "This is a test task", "", true);
-            Assert.AreEqual(expectedTask, task);
+            ClassicAssert.AreEqual(expectedTask, task);
         }
 
         [Test]
@@ -81,7 +82,7 @@ namespace ToDoTests
         {
             var task = new Task("X 2011-05-10 (A) @work +test This is a test task");
 
-            Assert.AreEqual(DateTime.Parse("2011-05-10"), task.CompletedDate.Value);
+            ClassicAssert.AreEqual(DateTime.Parse("2011-05-10"), task.CompletedDate.Value);
         }
 
         [Test]
@@ -90,7 +91,7 @@ namespace ToDoTests
             var task = new Task("(A) @work +test This is a test task");
 
             var expectedTask = new Task("(A)", _projects, _contexts, "This is a test task");
-            Assert.AreEqual(expectedTask, task);
+            ClassicAssert.AreEqual(expectedTask, task);
         }
 
         [Test]
@@ -99,7 +100,7 @@ namespace ToDoTests
             var task = new Task("(A) @work +test +test2 This is a test task");
 
             var expectedTask = new Task("(A)", new List<string>(){"+test", "+test2"}, _contexts, "This is a test task");
-            Assert.AreEqual(expectedTask, task);
+            ClassicAssert.AreEqual(expectedTask, task);
         }
 
         [Test]
@@ -108,7 +109,7 @@ namespace ToDoTests
             var task = new Task("(A) @work @home +test This is a test task");
 
             var expectedTask = new Task("(A)", _projects, new List<string>(){"@work" , "@home"} , "This is a test task");
-            Assert.AreEqual(expectedTask, task);
+            ClassicAssert.AreEqual(expectedTask, task);
         }
 
         [Test]
@@ -118,7 +119,7 @@ namespace ToDoTests
 
             var expectedTask = new Task("(A)", _projects, new List<string>() { "@work", "@home" }, "This is a test task", "2011-05-08", false);
             
-            Assert.AreEqual(expectedTask, task);
+            ClassicAssert.AreEqual(expectedTask, task);
         }
 
         [Test]
@@ -129,7 +130,7 @@ namespace ToDoTests
             string due = DateTime.Now.ToString("yyyy-MM-dd");
 
             var expectedTask = new Task("(A)", _projects, new List<string>() { "@work", "@home" }, "This is a test task", due, false);
-            Assert.AreEqual(expectedTask, task);
+            ClassicAssert.AreEqual(expectedTask, task);
         }
 
         [Test]
@@ -140,7 +141,7 @@ namespace ToDoTests
             string due = DateTime.Now.AddDays(1).ToString("yyyy-MM-dd");
 
             var expectedTask = new Task("(A)", _projects, new List<string>() { "@work", "@home" }, "This is a test task", due, false);
-            Assert.AreEqual(expectedTask, task);
+            ClassicAssert.AreEqual(expectedTask, task);
         }
 
         [Test]
@@ -155,7 +156,7 @@ namespace ToDoTests
             string due = dueDate.ToString("yyyy-MM-dd");
 
             var expectedTask = new Task("(A)", _projects, new List<string>() { "@work", "@home" }, "This is a test task", due, false);
-            Assert.AreEqual(expectedTask, task);
+            ClassicAssert.AreEqual(expectedTask, task);
         }
 
         [Test]
@@ -163,7 +164,7 @@ namespace ToDoTests
         {
             var task = new Task("(A) 2011-05-07 due:2011-05-08 @work @home +test This is a test task");
 
-            Assert.AreEqual(DateTime.Parse("2011-05-07"), task.CreationDate);
+            ClassicAssert.AreEqual(DateTime.Parse("2011-05-07"), task.CreationDate);
         }
 
 		[Test]
@@ -171,7 +172,7 @@ namespace ToDoTests
 		{
 			var task = new Task("This is a test task +work&home");
 
-			Assert.AreEqual("+work&home", task.Projects[0]);
+			ClassicAssert.AreEqual("+work&home", task.Projects[0]);
 		}
         #endregion
 
@@ -181,14 +182,14 @@ namespace ToDoTests
         public void ToString_From_Raw()
         {
             var task = new Task("(A) @work +test This is a test task");
-            Assert.AreEqual("(A) @work +test This is a test task", task.ToString());
+            ClassicAssert.AreEqual("(A) @work +test This is a test task", task.ToString());
         }
 
         [Test]
         public void ToString_From_Parameters()
         {
             var task = new Task("(A)", _projects, _contexts, "This is a test task");
-            Assert.AreEqual("(A) This is a test task +test @work", task.ToString());
+            ClassicAssert.AreEqual("(A) This is a test task +test @work", task.ToString());
         }
         #endregion
 
@@ -207,49 +208,49 @@ namespace ToDoTests
         public void Task_with_out_due_date()
         {
             var t = new Task("Task with out due date task");
-            Assert.AreEqual(t.IsTaskDue, Due.NotDue);
+            ClassicAssert.AreEqual(t.IsTaskDue, Due.NotDue);
         }
 
         [Test]
         public void Task_Complete_with_out_due_date()
         {
             var t = new Task("x Task Complete with out due date task");
-            Assert.AreEqual(t.IsTaskDue, Due.NotDue);
+            ClassicAssert.AreEqual(t.IsTaskDue, Due.NotDue);
         }
 
         [Test]
         public void Task_with_future_due_date()
         {
             var t = new Task("Task with future task due:" + DateTime.Now.AddDays(2).ToString("yyyy-MM-dd"));
-            Assert.AreEqual(t.IsTaskDue, Due.NotDue);
+            ClassicAssert.AreEqual(t.IsTaskDue, Due.NotDue);
         }
 
         [Test]
         public void Task_Complete_with_future_due_date()
         {
             var t = new Task("x Task Complete with future task due:" + DateTime.Now.AddDays(2).ToString("yyyy-MM-dd"));
-            Assert.AreEqual(t.IsTaskDue, Due.NotDue);
+            ClassicAssert.AreEqual(t.IsTaskDue, Due.NotDue);
         }
 
         [Test]
         public void Task_with_today_due_date()
         {
             var t = new Task("Task with today due:" + DateTime.Now.ToString("yyyy-MM-dd"));
-            Assert.AreEqual(t.IsTaskDue, Due.Today);
+            ClassicAssert.AreEqual(t.IsTaskDue, Due.Today);
         }
 
         [Test]
         public void Task_Complete_with_today_due_date()
         {
             var t = new Task("x Task Complete with today due:" + DateTime.Now.ToString("yyyy-MM-dd"));
-            Assert.AreEqual(t.IsTaskDue, Due.NotDue);
+            ClassicAssert.AreEqual(t.IsTaskDue, Due.NotDue);
         }
 
         [Test]
         public void Task_with_over_due_date()
         {
             var t = new Task("Task with overdue date due:" + DateTime.Now.AddDays(-4).ToString("yyyy-MM-dd"));
-            Assert.AreEqual(t.IsTaskDue, Due.Overdue);
+            ClassicAssert.AreEqual(t.IsTaskDue, Due.Overdue);
 
         }
 
@@ -257,7 +258,7 @@ namespace ToDoTests
         public void Task_Complete_with_over_due_date()
         {
             var t = new Task("x Task Complete with overdue date due:" + DateTime.Now.AddDays(-2).ToString("yyyy-MM-dd"));
-            Assert.AreEqual(t.IsTaskDue, Due.NotDue);
+            ClassicAssert.AreEqual(t.IsTaskDue, Due.NotDue);
         }
 
         #endregion

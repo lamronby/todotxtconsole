@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using ToDoLib;
 using System.IO;
 using System.Threading;
-using System.Diagnostics;
 
 namespace ToDoTests
 {
@@ -58,10 +57,10 @@ namespace ToDoTests
 
             var newTasks = tl.Tasks.ToList();
 
-            Assert.AreEqual(tasks.Count, newTasks.Count);
+            ClassicAssert.AreEqual(tasks.Count, newTasks.Count);
 
             for (int i = 0; i < tasks.Count; i++)
-                Assert.AreEqual(tasks[i].ToString(), newTasks[i].ToString());
+                ClassicAssert.AreEqual(tasks[i].ToString(), newTasks[i].ToString());
         }
 
         [Test]
@@ -88,7 +87,7 @@ namespace ToDoTests
             var tl = new TaskList(TestDataPath);
             tl.Add(new Task("A task"));
 
-            Assert.AreEqual(1,tl.Tasks.Count());
+            ClassicAssert.AreEqual(1,tl.Tasks.Count());
 
         }
 
@@ -104,7 +103,7 @@ namespace ToDoTests
             var task2 = new Task("Add_Multiple task two");
             tl.Add(task2);
 
-            Assert.AreEqual(c + 2, tl.Tasks.Count());
+            ClassicAssert.AreEqual(c + 2, tl.Tasks.Count());
         }
 
         [Test]
@@ -121,10 +120,10 @@ namespace ToDoTests
 
             var newTasks = tl.Tasks.ToList();
 
-            Assert.AreEqual(tasks.Count, newTasks.Count);
+            ClassicAssert.AreEqual(tasks.Count, newTasks.Count);
 
             for (int i = 0; i < tasks.Count; i++)
-                Assert.AreEqual(tasks[i].ToString(), newTasks[i].ToString());
+                ClassicAssert.AreEqual(tasks[i].ToString(), newTasks[i].ToString());
         }
 
         [Test]
@@ -155,7 +154,7 @@ namespace ToDoTests
             tl.Save();
 
             var newTask = tl.Tasks.Last();
-            Assert.IsTrue(newTask.Completed);
+            ClassicAssert.IsTrue(newTask.Completed);
         }
 
 		[Test]

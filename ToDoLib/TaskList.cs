@@ -55,7 +55,11 @@ namespace ToDoLib
             FilePath = filePath;
             _fullReloadAfterChanges = fullReloadAfterChanges;
 
-            _watcher = new FileSystemWatcher(Path.GetDirectoryName(filePath), Path.GetFileName(filePath));
+            var dir = Path.GetDirectoryName(filePath) == string.Empty
+                ? Directory.GetCurrentDirectory()
+                : Path.GetDirectoryName(filePath);
+
+            _watcher = new FileSystemWatcher(dir, Path.GetFileName(filePath));
             _watcher.NotifyFilter = NotifyFilters.LastWrite;
             _watcher.Changed += OnFileChanged;
 
