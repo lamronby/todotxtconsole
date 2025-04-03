@@ -7,12 +7,12 @@ namespace ClientConsole
 {
     public enum SortType
     {
-        Alphabetical,
-        Completed,
-        Context,
-        DueDate,
-        Priority,
-        Project,
-        None
+        none,
+        alphabetical,
+        completed,
+        context,
+        dueDate,
+        priority,
+        project
     }
 }

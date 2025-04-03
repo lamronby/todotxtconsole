@@ -7,9 +7,9 @@ namespace ClientConsole
 {
     public enum GroupByType
     {
-        None,
-        Context,
-        Project,
-        Priority
+        none,
+        context,
+        project,
+        priority
     }
 }

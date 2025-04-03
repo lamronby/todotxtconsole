@@ -6,6 +6,10 @@ using System.Reflection;
 using ClientConsole.Commands;
 using ClientConsole.Views;
 using CommandLine;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Mono.Options;
 using Serilog;
 using Serilog.Events;
@@ -15,11 +19,13 @@ namespace ClientConsole
 {
     class Program
     {
+#if OLD
         private class Options
         {
             [Option('f', "config_file", Required = true, HelpText = "Path to a config file.")]
             public string ConfigFile { get; set; }
         }
+#endif
         #region todo reference
 
         /*
@@ -210,68 +216,80 @@ namespace ClientConsole
 
         static void ShowHelp(OptionSet p)
         {
-            Console.WriteLine("Usage: ClientConsole [-hfasg]");
-            Console.WriteLine();
-            Console.WriteLine("Options:");
-            p.WriteOptionDescriptions(Console.Out);
+            Console.WriteLine("Usage: ClientConsole [folder]");
+            Console.WriteLine("       folder: folder in which to create a todo.txt file,");
+            Console.WriteLine("               or in which one already exists.");
         }
 
-        /*
-          Options:
-            f|ConfigFile
-                Specify the path of the config  file.
-        */
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
+            string todoFolder = null;
             string configFilePath = null;
-            
-            //ParserResult<Options> result = 
-            Parser.Default.ParseArguments<Options>(args)
-                .WithParsed(o =>
-                {
-                    configFilePath = o.ConfigFile;
-                    if (string.IsNullOrEmpty(configFilePath))
-                    {
-                        var baseDir = Assembly.GetExecutingAssembly().Location;
-                        configFilePath = baseDir + "ClientConsoleConfig.yaml";
-                    }
-                })
-                .WithNotParsed(e =>
-                {
-                    foreach (var error in e)
-                    {
-                        if (error.Tag == ErrorType.HelpRequestedError ||
-                            error.Tag == ErrorType.HelpVerbRequestedError ||
-                            error.Tag == ErrorType.VersionRequestedError)
-                            continue;
 
-                        Console.Error.WriteLine(error.ToString());
-                    }
-                    Environment.Exit(1);
-                });
-            
-
-            var levelSwitch = new Serilog.Core.LoggingLevelSwitch(LogEventLevel.Information);
-            using var log = new LoggerConfiguration()
-                .MinimumLevel.ControlledBy(levelSwitch)
-                .WriteTo.Console()
-                .CreateLogger();
-              
-            Log.Logger = log;
-
-            var configService = new ConfigService(configFilePath);
-
-            if (configService.ToDoConfig.LogLevel >= 0 && configService.ToDoConfig.LogLevel <= 5)
+            if (args.Length == 0)
             {
-              levelSwitch.MinimumLevel = (LogEventLevel)configService.ToDoConfig.LogLevel;
+                todoFolder = Directory.GetCurrentDirectory();
+            }
+            else
+            {
+                if (!Directory.Exists(args[0]))
+                {
+                    Console.WriteLine("Folder does not exist: {folderPath}", args[0]);
+                    Console.WriteLine("Exiting.");
+                    return 1;
+                }
+                todoFolder = args[0];
             }
 
-            if ( string.IsNullOrEmpty( configService.ToDoConfig.FilePath ) )
+            var todoFile = Path.Combine(todoFolder, "todo.txt");
+            if (!File.Exists(todoFile))
             {
-                Console.WriteLine("Cannot continue, file path not configured.");
-                return;
+                if (PromptYesOrNo($"todo.txt file does not exist in current directory. Create"))
+                {
+                    try
+                    {
+                        File.Create(todoFile);
+                    }
+                    catch (IOException e)
+                    {
+                        Console.WriteLine($"Unable to create {todoFile}: {e.Message}.");
+                        Console.WriteLine("Exiting.");
+                        return 1;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Cannot continue. Either create the todo.txt file, or specify a folder.");
+                    return 2;
+                }
             }
 
+            var archiveFile = Path.Combine(todoFolder, "archive.txt");
+            if (!File.Exists(archiveFile))
+            {
+                Console.WriteLine("archive.txt file does not exist in current directory.");
+                Console.WriteLine("Without an archive file, completed tasks will be kept in todo.txt.");
+                if (PromptYesOrNo($"Create archive.txt"))
+                {
+                    try
+                    {
+                        File.Create(archiveFile);
+                    }
+                    catch (IOException e)
+                    {
+                        Console.WriteLine($"Unable to create {archiveFile}: {e.Message}.");
+                        Console.WriteLine("Exiting.");
+                        return 1;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Completed tasks will be kept in todo.txt.");
+                    return 2;
+                }
+            }
+
+#if OLD
             if ( string.IsNullOrEmpty( configService.ToDoConfig.ArchiveFilePath ) )
             {
                 // Don't use an archive file, just archive within the main file 
@@ -285,18 +303,52 @@ namespace ClientConsole
                     listOnStart: configService.ToDoConfig.ListOnStart,
                     listAfterCommand: configService.ToDoConfig.ListAfterCommand);
             }
+#endif
 
-            // TODO Create file if it doesn't exist.
-            if (!File.Exists(configService.ToDoConfig.FilePath))
+            // var config = new ConfigurationBuilder()
+            //   .SetBasePath(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? Directory.GetCurrentDirectory())
+            //   .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            //   .Build();
+
+            var builder = Host.CreateApplicationBuilder(args);
+
+            // Configure Serilog from appsettings.json
+            // Log.Logger = new LoggerConfiguration()
+            //     .ReadFrom.Configuration(builder.Configuration)
+            //     .CreateLogger();
+
+            builder.Services
+              .AddLogging(config =>
+              {
+                config.ClearProviders();
+
+                var logger = new LoggerConfiguration()
+                    .ReadFrom.Configuration(builder.Configuration)
+                    .CreateLogger();
+
+                config.AddSerilog(logger);
+              });
+
+            builder.Services.Configure<ToDoConfig>(builder.Configuration.GetSection("ToDoConfig"));
+            builder.Services.AddSingleton<ConfigService>();
+
+            // Automatically discover and register all `ITodoCommand` implementations
+            var commandTypes = Assembly.GetExecutingAssembly()
+                .GetTypes()
+                .Where(t => typeof(ITodoCommand).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+
+            foreach (var type in commandTypes)
             {
-                throw new ArgumentException($"Todo file path does not exist: {configService.ToDoConfig.FilePath}");
+                builder.Services.AddSingleton(typeof(ITodoCommand), type);
+                Log.Debug("Registered command: {0}", type.Name);
             }
             
-            if (!File.Exists(configService.ToDoConfig.ArchiveFilePath))
-            {
-                throw new ArgumentException($"Archive file path does not exist: {configService.ToDoConfig.ArchiveFilePath}");
-            }
-            var taskList = LoadTasks(configService.ToDoConfig.FilePath, configService.ToDoConfig.FullReloadAfterChanges);
+            builder.Services.AddHostedService<ToDoService>();
+
+            var host = builder.Build();
+
+            // TODO Move to controller?
+            var taskList = LoadTasks(todoFile, configService.ToDoConfig.FullReloadAfterChanges);
 
             var recurFilePath = configService.ToDoConfig.RecurFilePath;
             if (!File.Exists(recurFilePath))
@@ -305,11 +357,15 @@ namespace ClientConsole
             }
             var recurTaskList = LoadRecurringTasks(recurFilePath, configService.ToDoConfig.FullReloadAfterChanges);
 
-            var commands = LoadCommands();
+            // var commands = LoadCommands();
 
-            IToDoController controller = new ToDoController(configService, taskList, recurTaskList, commands, new TaskListView());
+            // IToDoController controller = new ToDoController(configService, taskList, recurTaskList, commands, new TaskListView());
 
-            controller.Run();
+            // controller.Run();
+            host.Run();
+            
+            return 0;
+
         }
 
         private static TaskList LoadTasks(string filePath, bool fullReloadAfterChanges)
@@ -346,6 +402,7 @@ namespace ClientConsole
             return taskList;
         }
 
+#if OLD
         private static IDictionary<string, ITodoCommand> LoadCommands()
         {
             var commands = new Dictionary<string, ITodoCommand>();
@@ -366,6 +423,26 @@ namespace ClientConsole
             }
 
             return commands;
+        }
+#endif
+
+        private static bool PromptYesOrNo(string prompt, bool defaultAnswer = true)
+        {
+            var promptEnding = defaultAnswer ? "(Y/n)" : "(y/N)";
+
+            while (true)
+            {
+                Console.WriteLine($"{prompt} {promptEnding}? ");
+                var answer = Console.ReadLine();
+
+                if (answer == string.Empty)  return defaultAnswer;
+
+                if (answer.Equals("y", StringComparison.InvariantCultureIgnoreCase)) return true;
+
+                if (answer.Equals("n", StringComparison.InvariantCultureIgnoreCase)) return false;
+
+                Console.WriteLine($"Response not recognized ({answer})");
+            }
         }
 
     }
