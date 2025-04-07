@@ -12,6 +12,6 @@
             "program": "${workspaceFolder}/ClientConsole/bin/Debug/net8.0/ClientConsole.dll",
             "args": ["-f", "ClientConsoleConfig.yaml"],
             "cwd": "${workspaceFolder}/ClientConsole"
-        },
-
+        }
+    ]
 }

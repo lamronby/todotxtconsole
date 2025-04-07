@@ -182,17 +182,17 @@ namespace ToDoLib
 
         public void Add(Task task)
         {
+            var output = task.ToString();
+            Log.Debug("Adding task '{0}'", output);
+            _watcher.EnableRaisingEvents = false;
+
             try
             {
-                var output = task.ToString();
-
-                Log.Debug("Adding task '{0}'", output);
 
                 var text = File.ReadAllText(FilePath);
                 if (text.Length > 0 && !text.EndsWith(Environment.NewLine))
                     output = Environment.NewLine + output;
 
-                _watcher.EnableRaisingEvents = false;
                 File.AppendAllLines(FilePath, new string[] { output });
 
 				Console.WriteLine("Task '{0}' added", output);
@@ -212,25 +212,28 @@ namespace ToDoLib
                 throw;
             }
 
+            _watcher.EnableRaisingEvents = true;
         }
 
         public void Delete(Task task)
         {
+            Log.Debug("Deleting task {0}: {1}", task.Id.ToString(), task.ToString());
+            _watcher.EnableRaisingEvents = false;
+            
             try
             {
-                Log.Debug("Deleting task {0}: {1}", task.Id.ToString(), task.ToString());
-
                 if (this.Tasks.Remove(this.Tasks.First(t => t.Equals(task))))
                 {
-                    _watcher.EnableRaisingEvents = false;
                     File.WriteAllLines(FilePath, this.Tasks.Select(t => t.ToString()));
-                    _watcher.EnableRaisingEvents = true;
-                }
-                
-                Log.Debug("Task {0} deleted", task.Id.ToString());
-				Console.WriteLine("Task {0} deleted", task.Id.ToString());
+                    Log.Debug("Task {0} deleted", task.Id.ToString());
+                    Console.WriteLine("Task {0} deleted", task.Id.ToString());
 
-                ReloadTasks();
+                    ReloadTasks();
+                }
+                else
+                {
+                    Console.WriteLine("Task {0} not found", task.Id.ToString());
+                }                
             }
             catch (IOException ex)
             {
@@ -243,11 +246,13 @@ namespace ToDoLib
                 Log.Error(ex.ToString());
                 throw;
             }
+            _watcher.EnableRaisingEvents = true;
         }
 
       
         public void Save()
         {
+            _watcher.EnableRaisingEvents = false;
             try
             {
                 File.WriteAllLines(FilePath, this.Tasks.Select(t => t.ToString()));
@@ -264,11 +269,12 @@ namespace ToDoLib
                 Log.Error(ex.ToString());
                 throw;
             }
+            _watcher.EnableRaisingEvents = true;
         }
 
         public IEnumerable<Task> Sort(SortType sort, bool FilterCaseSensitive, string Filter)
         {
-                return SortList(sort, FilterList(this.Tasks, FilterCaseSensitive, Filter));
+            return SortList(sort, FilterList(this.Tasks, FilterCaseSensitive, Filter));
         }
 
         public static List<Task> FilterList(List<Task> tasks, bool FilterCaseSensitive, string Filter) 
